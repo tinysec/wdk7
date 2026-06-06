@@ -1,0 +1,35 @@
+name: self-test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  detect:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - amd64
+          - i386
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup wdk7
+        id: wdk7
+        uses: ./
+        with:
+          arch: ${{ matrix.arch }}
+          download: "false"
+
+      - name: show outputs
+        shell: powershell
+        run: |
+          "found=${{ steps.wdk7.outputs.found }}"
+          "root=${{ steps.wdk7.outputs.root }}"
+          "arch=${{ steps.wdk7.outputs.arch }}"
+          "source=${{ steps.wdk7.outputs.source }}"
+          "cache-hit=${{ steps.wdk7.outputs.cache-hit }}"

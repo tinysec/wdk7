@@ -1,0 +1,11 @@
+# Local action debug files
+/.action-debug/
+
+# Editor/user state
+/.idea/
+/.vs/
+*.user
+
+# OS noise
+Thumbs.db
+Desktop.ini

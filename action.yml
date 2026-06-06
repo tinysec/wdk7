@@ -1,0 +1,61 @@
+name: wdk7
+description: Detect, download, cache, and expose Windows Driver Kit 7.1.
+
+inputs:
+  arch:
+    description: Target architecture: amd64/i386, x64/x86, or Win32.
+    default: amd64
+  root:
+    description: Explicit WDK7 root. Overrides environment probing when valid.
+    default: ""
+  download:
+    description: Download and extract WDK7 when it cannot be found locally.
+    default: "true"
+  download-url:
+    description: WDK7 ISO URL. Defaults to the official Microsoft WDK 7.1 ISO.
+    default: "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
+  sha256:
+    description: Optional SHA-256 checksum for the ISO.
+    default: ""
+  cache-root:
+    description: Directory used for the local WDK7 cache.
+    default: ""
+  install-root:
+    description: Directory where the WDK7 administrative image is extracted.
+    default: ""
+  fail-on-error:
+    description: Fail the step when download or extraction fails instead of allowing fallback.
+    default: "false"
+
+outputs:
+  found:
+    description: true when a usable WDK7 tree was found or prepared.
+    value: ${{ steps.setup.outputs.found }}
+  root:
+    description: Resolved WDK7 root.
+    value: ${{ steps.setup.outputs.root }}
+  arch:
+    description: Normalized WDK7 architecture.
+    value: ${{ steps.setup.outputs.arch }}
+  source:
+    description: Resolution source: input, environment, cache, default, or download.
+    value: ${{ steps.setup.outputs.source }}
+  cache-hit:
+    description: true when an existing cached WDK7 tree was reused.
+    value: ${{ steps.setup.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - id: setup
+      shell: powershell
+      run: |
+        & "$env:GITHUB_ACTION_PATH\setup-wdk7.ps1" `
+          -Arch "${{ inputs.arch }}" `
+          -Root "${{ inputs.root }}" `
+          -Download "${{ inputs.download }}" `
+          -DownloadUrl "${{ inputs.download-url }}" `
+          -Sha256 "${{ inputs.sha256 }}" `
+          -CacheRoot "${{ inputs.cache-root }}" `
+          -InstallRoot "${{ inputs.install-root }}" `
+          -FailOnError "${{ inputs.fail-on-error }}"
