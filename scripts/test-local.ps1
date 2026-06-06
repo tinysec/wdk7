@@ -12,6 +12,9 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $debugRoot = Join-Path $repoRoot ".action-debug\$PID"
 New-Item -ItemType Directory -Force -Path $debugRoot | Out-Null
 
+# The action writes to GitHub-provided files during real workflow runs. Local
+# debugging uses temporary files with the same environment variable names so the
+# TypeScript entry point exercises the same output path.
 $env:GITHUB_ACTION_PATH = $repoRoot
 $env:GITHUB_OUTPUT = Join-Path $debugRoot "github-output.txt"
 $env:GITHUB_ENV = Join-Path $debugRoot "github-env.txt"
@@ -24,6 +27,8 @@ Set-Item -Path "Env:INPUT_ROOT" -Value $Root
 Set-Item -Path "Env:INPUT_DOWNLOAD-URL" -Value $DownloadUrl
 Set-Item -Path "Env:INPUT_DEBUGGER" -Value ($(if ($Debugger) { "true" } else { "false" }))
 
+# The local harness runs the bundled action because that is the file GitHub will
+# execute. This catches stale dist/index.js output before a release.
 $entry = Join-Path $repoRoot "dist\index.js"
 if (-not (Test-Path -LiteralPath $entry)) {
     throw "Missing dist\index.js. Run 'npm.cmd install' and 'npm.cmd run build' first."

@@ -1,5 +1,5 @@
 {
-  "name": "setup-wdk7-action",
+  "name": "setup-wdk7",
   "version": "1.0.0",
   "private": true,
   "type": "module",
