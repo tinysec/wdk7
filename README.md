@@ -59,7 +59,7 @@ For legacy DDKBuild projects:
 ```yaml
 - name: build driver
   shell: cmd
-  run: call "${{ steps.wdk7.outputs.ddkbuild-cmd }}" -WIN7A64 free src
+  run: call ddkbuild.cmd -WIN7A64 free src
 ```
 
 Use `root` to point at a preinstalled WDK7 tree, or `download-url` to provide
