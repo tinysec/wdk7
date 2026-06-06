@@ -156,6 +156,10 @@ your runner/server configuration; if no cache service is exposed, the action
 continues with the local disk cache and does not fail just because cache is
 unavailable.
 
+When WDK7 is found from `root`, `WDK7_ROOT`, `W7BASE`, or the default
+`C:\WinDDK\7600.16385.1` path, that existing local installation is used as-is
+and is not saved back into the Actions cache.
+
 Self-hosted runner disk persistence is still the fastest path for WDK7.
 
 ## Development

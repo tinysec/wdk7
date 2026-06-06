@@ -68176,9 +68176,6 @@ async function run() {
       sdk = prepared2.sdk;
       cacheChanged = prepared2.cacheChanged;
     }
-    if (inputs.debugger && (cacheChanged || sdk) && restoredCacheKey !== cacheKey) {
-      await saveActionCache(cacheRoot, cacheKey);
-    }
     publishWdk7(installed.root, installed.source, Boolean(restoredCacheKey), sdk);
     return;
   }
