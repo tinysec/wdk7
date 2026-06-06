@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "check": "tsc --noEmit",
-    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.js --sourcemap",
+    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.js",
     "build": "npm run check && npm run package"
   },
   "dependencies": {
