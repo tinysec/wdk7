@@ -8,8 +8,9 @@ import * as path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const defaultDownloadUrl =
-  "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO";
+const defaultDownloadUrls = [
+  "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
+];
 const cmakeGenerator = "NMake Makefiles";
 const cacheKey = "wdk7-7600.16385.1";
 const restoreKeys = ["wdk7-"];
@@ -22,14 +23,38 @@ interface Candidate {
 
 interface Inputs {
   root: string;
-  downloadUrl: string;
+  downloadUrls: string[];
 }
 
 function readInputs(): Inputs {
+  const downloadUrls = splitDownloadUrls(core.getInput("download-url"));
+
   return {
     root: core.getInput("root"),
-    downloadUrl: core.getInput("download-url") || defaultDownloadUrl
+    downloadUrls: uniqueStrings([...downloadUrls, ...defaultDownloadUrls])
   };
+}
+
+function splitDownloadUrls(value: string): string[] {
+  return value
+    .split(/[\r\n,;]+/)
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function uniqueStrings(values: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const value of values) {
+    const key = value.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(value);
+    }
+  }
+
+  return result;
 }
 
 function actionRoot(): string {
@@ -313,6 +338,36 @@ async function downloadFileWithRetries(urlText: string, outputPath: string, atte
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
+async function downloadFileFromUrlsWithRetries(
+  urls: string[],
+  outputPath: string,
+  attempts: number
+): Promise<string> {
+  let lastError: unknown;
+
+  for (let index = 0; index < urls.length; index += 1) {
+    const url = urls[index];
+    try {
+      core.info(`Downloading WDK7 ISO from source ${index + 1}/${urls.length}: ${url}`);
+      await downloadFileWithRetries(url, outputPath, attempts);
+      return url;
+    } catch (error) {
+      lastError = error;
+      rmSync(outputPath, { force: true });
+
+      if (index + 1 < urls.length) {
+        core.warning(
+          `WDK7 ISO source ${index + 1}/${urls.length} failed: ${
+            error instanceof Error ? error.message : String(error)
+          }. Trying next source.`
+        );
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+
 async function mountIso(isoPath: string): Promise<string> {
   const script = path.join(actionRoot(), "scripts", "mount-iso.ps1");
   const output = await runProcess("powershell.exe", [
@@ -480,8 +535,8 @@ async function run(): Promise<void> {
     return;
   }
 
-  if (!inputs.downloadUrl.trim()) {
-    publishNotFound("WDK7 was not found and no download URL was provided.");
+  if (inputs.downloadUrls.length === 0) {
+    publishNotFound("WDK7 was not found and no download URLs are configured.");
     return;
   }
 
@@ -489,8 +544,8 @@ async function run(): Promise<void> {
   if (existsSync(isoPath)) {
     core.info(`Using cached WDK7 ISO: ${isoPath}`);
   } else {
-    core.info(`Downloading WDK7 ISO from: ${inputs.downloadUrl}`);
-    await downloadFileWithRetries(inputs.downloadUrl, isoPath, downloadRetries);
+    const downloadedUrl = await downloadFileFromUrlsWithRetries(inputs.downloadUrls, isoPath, downloadRetries);
+    core.info(`Downloaded WDK7 ISO from: ${downloadedUrl}`);
   }
 
   const targetRoot = path.join(cacheRoot, "7600.16385.1");

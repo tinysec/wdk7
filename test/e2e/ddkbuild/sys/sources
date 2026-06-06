@@ -1,0 +1,5 @@
+TARGETNAME=e2e_ddkbuild
+TARGETTYPE=DRIVER
+TARGETPATH=obj
+
+SOURCES=driver.c

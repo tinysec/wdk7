@@ -1,0 +1,104 @@
+name: ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "23 18 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: windows-2025
+    timeout-minutes: 90
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v5
+
+      - name: build action bundle
+        shell: powershell
+        run: |
+          npm.cmd ci
+          npm.cmd run build
+          git diff --exit-code -- dist/index.js
+
+      - name: setup wdk7
+        id: wdk7
+        uses: ./
+
+      - name: verify setup
+        shell: powershell
+        run: |
+          if ("${{ steps.wdk7.outputs.found }}" -ne "true") {
+            throw "WDK7 was not prepared."
+          }
+
+          "root=${{ steps.wdk7.outputs.root }}"
+          "source=${{ steps.wdk7.outputs.source }}"
+          "cache-hit=${{ steps.wdk7.outputs.cache-hit }}"
+          "toolchain-file=${{ steps.wdk7.outputs.toolchain-file }}"
+          "ddkbuild-cmd=${{ steps.wdk7.outputs.ddkbuild-cmd }}"
+
+      - name: build cmake e2e targets
+        shell: powershell
+        env:
+          CMAKE_GENERATOR: ${{ steps.wdk7.outputs.cmake-generator }}
+          WDK7_TOOLCHAIN_FILE: ${{ steps.wdk7.outputs.toolchain-file }}
+        run: |
+          $source = Join-Path $PWD "test\e2e\cmake"
+          $expected = @(
+            "e2e_cli.exe",
+            "e2e_dll.dll",
+            "e2e_lib.lib",
+            "e2e_sys.sys"
+          )
+
+          foreach ($arch in @("i386", "amd64")) {
+            $build = Join-Path $PWD ".e2e\cmake-$arch"
+
+            cmake -S $source -B $build -G $env:CMAKE_GENERATOR `
+              "-DCMAKE_TOOLCHAIN_FILE=$env:WDK7_TOOLCHAIN_FILE" `
+              "-DWDK7_ARCH=$arch" `
+              "-DCMAKE_BUILD_TYPE=Release"
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+
+            cmake --build $build --config Release
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+
+            foreach ($file in $expected) {
+              $path = Join-Path $build $file
+              if (-not (Test-Path -LiteralPath $path)) {
+                throw "Missing CMake $arch output: $path"
+              }
+            }
+          }
+
+      - name: build ddkbuild e2e target
+        shell: powershell
+        env:
+          DDKBUILD_CMD: ${{ steps.wdk7.outputs.ddkbuild-cmd }}
+        run: |
+          $source = "test\e2e\ddkbuild\sys"
+
+          foreach ($target in @("-WIN7", "-WIN7A64")) {
+            cmd /s /c "call ""$env:DDKBUILD_CMD"" $target free $source"
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+          }
+
+          $sysFiles = @(Get-ChildItem -Path $source -Recurse -Filter e2e_ddkbuild.sys)
+          if ($sysFiles.Count -lt 2) {
+            throw "Expected ddkbuild to produce x86 and amd64 .sys files."
+          }
+
+          $sysFiles | ForEach-Object { $_.FullName }

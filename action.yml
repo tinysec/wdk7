@@ -6,8 +6,8 @@ inputs:
     description: Explicit WDK7 root. Overrides environment probing when valid.
     default: ""
   download-url:
-    description: WDK7 ISO URL. Defaults to the official Microsoft WDK 7.1 ISO.
-    default: "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
+    description: Optional WDK7 ISO URL list. Separate multiple URLs with newlines, commas, or semicolons. Built-in Microsoft URLs are tried after these URLs.
+    default: ""
 
 outputs:
   found:

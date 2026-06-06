@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$Root = "",
-    [string]$DownloadUrl = "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
+    [string]$DownloadUrl = ""
 )
 
 Set-StrictMode -Version 2.0

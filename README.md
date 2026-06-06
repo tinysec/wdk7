@@ -44,7 +44,9 @@ For legacy WDK build projects, the action also bundles `ddkbuild.cmd` and sets
 ## Inputs
 
 - `root`: explicit WDK7 root.
-- `download-url`: optional WDK7 ISO URL override.
+- `download-url`: optional WDK7 ISO URL list. Separate multiple URLs with
+  newlines, commas, or semicolons. These URLs are tried before the built-in
+  Microsoft URL.
 
 ## Outputs
 
@@ -67,9 +69,9 @@ Detection order:
 5. restored/local WDK7 cache
 6. download and extraction
 
-There is no "do not download" switch. If WDK7 is not found and `download-url`
-is set, the action downloads and prepares WDK7. To force a specific local tree,
-pass `root`.
+There is no "do not download" switch. If WDK7 is not found, the action tries
+the configured download URLs and then the built-in Microsoft URL. To force a
+specific local tree, pass `root`.
 
 The default local cache root is:
 
@@ -122,9 +124,13 @@ The test script creates temporary `GITHUB_OUTPUT`, `GITHUB_ENV`, and
 `GITHUB_PATH` files, runs `dist/index.js`, and prints exactly what the action
 would export to later CI steps.
 
-The repository also contains `.github/workflows/self-test.yml`, which creates a
-minimal fake WDK7 tree and calls the published branch as
-`uses: tinysec/wdk7@master`.
+The repository contains one CI workflow, `.github/workflows/ci.yaml`. It builds
+the action bundle, prepares WDK7 through this action, then compiles the static
+fixtures under `test/e2e`:
+
+- CMake plus `cmake/wdk7.cmake`: exe, dll, static lib, and WDM sys for i386 and
+  amd64.
+- `ddkbuild.cmd`: WDM sys for i386 and amd64.
 
 ## Release
 

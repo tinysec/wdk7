@@ -1,5 +1,8 @@
 # Local action debug files
 /.action-debug/
+/.e2e/
+/test/e2e/ddkbuild/sys/build*.log
+/test/e2e/ddkbuild/sys/obj*/
 
 # Node development dependencies
 /node_modules/

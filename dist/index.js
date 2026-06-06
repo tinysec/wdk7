@@ -67459,16 +67459,34 @@ import * as os8 from "node:os";
 import * as path12 from "node:path";
 import { spawn as spawn2 } from "node:child_process";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
-var defaultDownloadUrl = "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO";
+var defaultDownloadUrls = [
+  "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
+];
 var cmakeGenerator = "NMake Makefiles";
 var cacheKey = "wdk7-7600.16385.1";
 var restoreKeys = ["wdk7-"];
 var downloadRetries = 3;
 function readInputs() {
+  const downloadUrls = splitDownloadUrls(getInput("download-url"));
   return {
     root: getInput("root"),
-    downloadUrl: getInput("download-url") || defaultDownloadUrl
+    downloadUrls: uniqueStrings([...downloadUrls, ...defaultDownloadUrls])
   };
+}
+function splitDownloadUrls(value) {
+  return value.split(/[\r\n,;]+/).map((item) => item.trim()).filter(Boolean);
+}
+function uniqueStrings(values) {
+  const seen = /* @__PURE__ */ new Set();
+  const result = [];
+  for (const value of values) {
+    const key = value.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(value);
+    }
+  }
+  return result;
 }
 function actionRoot() {
   return path12.dirname(path12.dirname(fileURLToPath2(import.meta.url)));
@@ -67698,6 +67716,26 @@ async function downloadFileWithRetries(urlText, outputPath, attempts) {
   }
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
+async function downloadFileFromUrlsWithRetries(urls, outputPath, attempts) {
+  let lastError;
+  for (let index = 0; index < urls.length; index += 1) {
+    const url2 = urls[index];
+    try {
+      info(`Downloading WDK7 ISO from source ${index + 1}/${urls.length}: ${url2}`);
+      await downloadFileWithRetries(url2, outputPath, attempts);
+      return url2;
+    } catch (error2) {
+      lastError = error2;
+      rmSync(outputPath, { force: true });
+      if (index + 1 < urls.length) {
+        warning(
+          `WDK7 ISO source ${index + 1}/${urls.length} failed: ${error2 instanceof Error ? error2.message : String(error2)}. Trying next source.`
+        );
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
 async function mountIso(isoPath) {
   const script = path12.join(actionRoot(), "scripts", "mount-iso.ps1");
   const output = await runProcess("powershell.exe", [
@@ -67839,16 +67877,16 @@ async function run() {
     );
     return;
   }
-  if (!inputs.downloadUrl.trim()) {
-    publishNotFound("WDK7 was not found and no download URL was provided.");
+  if (inputs.downloadUrls.length === 0) {
+    publishNotFound("WDK7 was not found and no download URLs are configured.");
     return;
   }
   const isoPath = path12.join(cacheRoot, "GRMWDK_EN_7600_1.ISO");
   if (existsSync4(isoPath)) {
     info(`Using cached WDK7 ISO: ${isoPath}`);
   } else {
-    info(`Downloading WDK7 ISO from: ${inputs.downloadUrl}`);
-    await downloadFileWithRetries(inputs.downloadUrl, isoPath, downloadRetries);
+    const downloadedUrl = await downloadFileFromUrlsWithRetries(inputs.downloadUrls, isoPath, downloadRetries);
+    info(`Downloaded WDK7 ISO from: ${downloadedUrl}`);
   }
   const targetRoot = path12.join(cacheRoot, "7600.16385.1");
   if (!isWdk7Root(targetRoot)) {
