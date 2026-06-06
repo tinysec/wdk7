@@ -126,9 +126,8 @@ The test script creates temporary `GITHUB_OUTPUT`, `GITHUB_ENV`, and
 `GITHUB_PATH` files, runs `dist/index.js`, and prints exactly what the action
 would export to later CI steps.
 
-If you have `act` configured with a Windows host runner, the repository also
-contains `.github/workflows/self-test.yml`, whose steps call this action as
-`uses: ./`.
+The repository also contains `.github/workflows/self-test.yml`, which calls the
+published branch as `uses: tinysec/wdk7@master`.
 
 ## Release
 

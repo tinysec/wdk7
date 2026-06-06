@@ -6,9 +6,6 @@ on:
     branches:
       - master
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 jobs:
   detect:
     runs-on: windows-2025
@@ -19,11 +16,9 @@ jobs:
           - amd64
           - i386
     steps:
-      - uses: actions/checkout@v4
-
       - name: setup wdk7
         id: wdk7
-        uses: ./
+        uses: tinysec/wdk7@master
         with:
           arch: ${{ matrix.arch }}
           download: "false"
