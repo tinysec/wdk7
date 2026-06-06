@@ -93,7 +93,8 @@ found, the action tries the configured download URLs and then the built-in
 Microsoft URL. To force a specific local tree, pass `root`.
 
 The action uses one cache for the complete default environment: WDK7 plus the
-Debugging Tools SDK. It does not restore older WDK-only cache entries.
+Debugging Tools SDK. The cache key is `wdk-7600.16385.1`; older WDK-only cache
+entries are not restored.
 
 Debugging Tools are exposed as a separate SDK surface. The action exports
 `WDK7_DEBUGGERS_ROOT`, `WDK7_DBGENG_INCLUDE_DIR`, `WDK7_DBGENG_LIB_I386`, and

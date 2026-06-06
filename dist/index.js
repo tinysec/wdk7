@@ -67463,7 +67463,7 @@ var defaultDownloadUrls = [
   "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
 ];
 var cmakeGenerator = "NMake Makefiles";
-var cacheKey = "wdk7-7600.16385.1-debuggers-v1";
+var cacheKey = "wdk-7600.16385.1";
 var restoreKeys = [];
 var downloadRetries = 3;
 function readInputs() {

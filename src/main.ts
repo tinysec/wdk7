@@ -12,7 +12,7 @@ const defaultDownloadUrls = [
   "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
 ];
 const cmakeGenerator = "NMake Makefiles";
-const cacheKey = "wdk7-7600.16385.1-debuggers-v1";
+const cacheKey = "wdk-7600.16385.1";
 const restoreKeys: string[] = [];
 const downloadRetries = 3;
 
