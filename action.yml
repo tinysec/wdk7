@@ -3,7 +3,7 @@ description: Detect, download, cache, and expose Windows Driver Kit 7.1.
 
 inputs:
   arch:
-    description: Target architecture: amd64/i386, x64/x86, or Win32.
+    description: "Target architecture: amd64/i386, x64/x86, or Win32."
     default: amd64
   root:
     description: Explicit WDK7 root. Overrides environment probing when valid.
@@ -47,7 +47,7 @@ outputs:
   arch:
     description: Normalized WDK7 architecture.
   source:
-    description: Resolution source: input, environment, cache, default, or download.
+    description: "Resolution source: input, environment, cache, default, or download."
   cache-hit:
     description: true when an existing cached WDK7 tree was reused.
   cache-key:
