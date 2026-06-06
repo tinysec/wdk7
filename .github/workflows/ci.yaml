@@ -50,7 +50,7 @@ jobs:
             throw "DbgEng SDK was not prepared."
           }
 
-      - name: build cmake e2e targets
+      - name: build cmake user e2e targets
         shell: powershell
         env:
           CMAKE_GENERATOR: ${{ steps.wdk7.outputs.cmake-generator }}
@@ -61,8 +61,8 @@ jobs:
             "e2e_cli.exe",
             "e2e_dll.dll",
             "e2e_lib.lib",
-            "e2e_sys.sys",
-            "e2e_dbgeng.exe"
+            "e2e_dbgeng.exe",
+            "e2e_native.exe"
           )
 
           foreach ($arch in @("i386", "amd64")) {
@@ -86,6 +86,37 @@ jobs:
               if (-not (Test-Path -LiteralPath $path)) {
                 throw "Missing CMake $arch output: $path"
               }
+            }
+          }
+
+      - name: build cmake sys e2e target
+        shell: powershell
+        env:
+          CMAKE_GENERATOR: ${{ steps.wdk7.outputs.cmake-generator }}
+          WDK7_TOOLCHAIN_FILE: ${{ steps.wdk7.outputs.toolchain-file }}
+        run: |
+          $source = Join-Path $PWD "test\e2e\cmake-sys"
+
+          foreach ($arch in @("i386", "amd64")) {
+            $build = Join-Path $PWD ".e2e\cmake-sys-$arch"
+
+            cmake -S $source -B $build -G $env:CMAKE_GENERATOR `
+              "-DCMAKE_TOOLCHAIN_FILE=$env:WDK7_TOOLCHAIN_FILE" `
+              "-DWDK7_ARCH=$arch" `
+              "-DWDK7_DEFAULT_MODE=KERNEL" `
+              "-DCMAKE_BUILD_TYPE=Release"
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+
+            cmake --build $build --config Release
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+
+            $path = Join-Path $build "e2e_sys.sys"
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Missing CMake $arch sys output: $path"
             }
           }
 

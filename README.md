@@ -32,6 +32,36 @@ The action bundles `cmake/wdk7.cmake`, so projects can use the action's
 toolchain file directly. If a project carries a customized copy, pass that path
 to CMake instead.
 
+`wdk7.cmake` adapts WDK7 to ordinary CMake user-mode targets by default. Project
+CMake files should prefer standard CMake commands and should not need WDK7
+helpers for exe, dll, or static library targets:
+
+```cmake
+add_library(plugin SHARED plugin.c)
+target_link_libraries(plugin PRIVATE DbgEng::DbgEng)
+```
+
+The same model works with `FetchContent` without a WDK-specific wrapper:
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+    zlib
+    GIT_REPOSITORY https://github.com/madler/zlib.git
+    GIT_TAG v1.3.1
+)
+FetchContent_MakeAvailable(zlib)
+```
+
+When a project needs mixed user/kernel targets, configure with
+`-DWDK7_DEFAULT_MODE=NONE` and use standard CMake target commands with the
+provided interface targets such as `WDK7::User`, `WDK7::Kernel`, and
+`WDK7::KernelWdm`. For driver-only CMake projects, `-DWDK7_DEFAULT_MODE=KERNEL`
+sets kernel compiler defaults; the `.sys` suffix, entry point, and driver linker
+flags are still expressed with ordinary `set_target_properties()` and
+`target_link_options()`.
+
 The action also bundles `cmake/FindDbgEng.cmake`. For WinDbg extensions or
 DbgEng programs, add the module directory to `CMAKE_MODULE_PATH` and use:
 
@@ -156,8 +186,10 @@ The repository contains one CI workflow, `.github/workflows/ci.yaml`. It builds
 the action bundle, prepares WDK7 through this action, then compiles the static
 fixtures under `test/e2e`:
 
-- CMake plus `cmake/wdk7.cmake`: exe, dll, static lib, and WDM sys for i386 and
-  amd64, plus a DbgEng-linked exe through `FindDbgEng.cmake`.
+- CMake plus `cmake/wdk7.cmake`: standard `add_executable()`/`add_library()`
+  user-mode exe, dll, static lib, a FetchContent static lib, and a DbgEng-linked
+  exe for i386 and amd64.
+- CMake plus `cmake/wdk7.cmake`: standard-command WDM sys for i386 and amd64.
 - `ddkbuild.cmd`: WDM sys for i386 and amd64.
 
 ## Release
