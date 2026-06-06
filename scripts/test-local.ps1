@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$Root = "",
-    [string]$DownloadUrl = ""
+    [string]$DownloadUrl = "",
+    [switch]$Debugger
 )
 
 Set-StrictMode -Version 2.0
@@ -21,6 +22,7 @@ New-Item -ItemType File -Force -Path $env:GITHUB_OUTPUT, $env:GITHUB_ENV, $env:G
 
 Set-Item -Path "Env:INPUT_ROOT" -Value $Root
 Set-Item -Path "Env:INPUT_DOWNLOAD-URL" -Value $DownloadUrl
+Set-Item -Path "Env:INPUT_DEBUGGER" -Value ($(if ($Debugger) { "true" } else { "false" }))
 
 $entry = Join-Path $repoRoot "dist\index.js"
 if (-not (Test-Path -LiteralPath $entry)) {

@@ -5,7 +5,8 @@ Windows Driver Kit 7.1 for CI jobs.
 
 It first detects an existing WDK7 tree, then reuses a local cache, and finally
 downloads and extracts the WDK7 ISO when it cannot find a usable tree. The
-default prepared environment includes the Debugging Tools SDK used by DbgEng.
+default prepared environment is WDK7-only; Debugging Tools are prepared only
+when `debugger: true` is set.
 
 ## Usage
 
@@ -61,11 +62,21 @@ sets kernel compiler defaults; the `.sys` suffix, entry point, and driver linker
 flags are still expressed with ordinary `set_target_properties()` and
 `target_link_options()`.
 
-The action prepares the Debugging Tools SDK because many WDK7-era projects need
-DbgEng headers and libraries, but it does not bundle a `FindDbgEng.cmake`
-module. WinDbg extensions and DbgEng programs should keep their own find module
-or target definition in the project repository. The action exposes the prepared
-SDK through `WDK7_DBGENG_INCLUDE_DIR`, `WDK7_DBGENG_LIB_I386`, and
+For WinDbg extensions or DbgEng programs, opt in to the Debugging Tools SDK:
+
+```yaml
+- name: setup wdk7
+  id: wdk7
+  uses: tinysec/setup-wdk7@v1
+  with:
+    debugger: true
+```
+
+The action does not bundle a `FindDbgEng.cmake` module and does not define a
+`WDK7::DbgEng` CMake target. Projects should keep their own find module or
+target definition, typically named `DbgEng::DbgEng`, in the project repository.
+When `debugger: true` is used, the action exposes the prepared SDK through
+`WDK7_DBGENG_INCLUDE_DIR`, `WDK7_DBGENG_LIB_I386`, and
 `WDK7_DBGENG_LIB_AMD64`.
 
 For legacy WDK build projects, the action also bundles `ddkbuild.cmd` and sets
@@ -85,6 +96,8 @@ For legacy WDK build projects, the action also bundles `ddkbuild.cmd` and sets
 - `download-url`: optional WDK7 ISO URL list. Separate multiple URLs with
   newlines, commas, or semicolons. These URLs are tried before the built-in
   Microsoft URL.
+- `debugger`: set to `true` to prepare the Debugging Tools SDK and expose DbgEng
+  include/library outputs. Defaults to `false`.
 
 ## Outputs
 
@@ -96,11 +109,13 @@ For legacy WDK build projects, the action also bundles `ddkbuild.cmd` and sets
 - `toolchain-file`: absolute path to the bundled CMake WDK7 toolchain file.
 - `ddkbuild-cmd`: absolute path to the bundled `ddkbuild.cmd` wrapper.
 - `cmake-generator`: recommended generator, currently `NMake Makefiles`.
-- `dbgeng-found`: `true` when a usable DbgEng SDK was found or prepared.
-- `debuggers-root`: resolved Debugging Tools root.
-- `dbgeng-include-dir`: DbgEng include directory.
-- `dbgeng-lib-i386`: DbgEng x86 library directory.
-- `dbgeng-lib-amd64`: DbgEng amd64 library directory.
+- `dbgeng-found`: `true` when `debugger: true` and a usable DbgEng SDK was found
+  or prepared.
+- `debuggers-root`: resolved Debugging Tools root when `dbgeng-found` is `true`.
+- `dbgeng-include-dir`: DbgEng include directory when `dbgeng-found` is `true`.
+- `dbgeng-lib-i386`: DbgEng x86 library directory when `dbgeng-found` is `true`.
+- `dbgeng-lib-amd64`: DbgEng amd64 library directory when `dbgeng-found` is
+  `true`.
 - `debuggers-bin-x86`: x86 Debugging Tools binary directory when available.
 - `debuggers-bin-x64`: x64 Debugging Tools binary directory when available.
 
@@ -112,21 +127,22 @@ Detection order:
 2. `WDK7_ROOT`
 3. `W7BASE`
 4. default `C:\WinDDK\7600.16385.1`
-5. restored/local WDK7 cache with Debugging Tools SDK
+5. restored/local WDK7 cache
 6. download and extraction
 
-There is no "do not download" switch. If WDK7 or the Debugging Tools SDK is not
-found, the action tries the configured download URLs and then the built-in
-Microsoft URL. To force a specific local tree, pass `root`.
+There is no "do not download" switch. If WDK7 is not found, the action tries the
+configured download URLs and then the built-in Microsoft URL. If `debugger:
+true` is set and the Debugging Tools SDK is not found, the action extracts it
+from the same WDK7 ISO. To force a specific local tree, pass `root`.
 
-The action uses one cache for the complete default environment: WDK7 plus the
-Debugging Tools SDK. The cache key is `wdk-7600.16385.1`; older WDK-only cache
-entries are not restored.
+The default cache is WDK-only and uses the key `wdk-7600.16385.1`. When
+`debugger: true` is used, the action uses `wdk-7600.16385.1-debugger` and may
+restore the WDK-only cache first to avoid downloading WDK7 twice.
 
 Debugging Tools are exposed as a separate SDK surface. The action exports
 `WDK7_DEBUGGERS_ROOT`, `WDK7_DBGENG_INCLUDE_DIR`, `WDK7_DBGENG_LIB_I386`, and
-`WDK7_DBGENG_LIB_AMD64`; it does not append these directories to the generic
-WDK7 include/library sets.
+`WDK7_DBGENG_LIB_AMD64` only when `debugger: true`; it does not append these
+directories to the generic WDK7 include/library sets.
 
 The default local cache root is:
 

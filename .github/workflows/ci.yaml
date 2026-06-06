@@ -31,7 +31,7 @@ jobs:
         id: wdk7
         uses: ./
 
-      - name: verify setup
+      - name: verify default setup
         shell: powershell
         run: |
           if ("${{ steps.wdk7.outputs.found }}" -ne "true") {
@@ -45,15 +45,79 @@ jobs:
           "toolchain-file=${{ steps.wdk7.outputs.toolchain-file }}"
           "ddkbuild-cmd=${{ steps.wdk7.outputs.ddkbuild-cmd }}"
 
-          if ("${{ steps.wdk7.outputs.dbgeng-found }}" -ne "true") {
-            throw "DbgEng SDK was not prepared."
+          if ("${{ steps.wdk7.outputs.dbgeng-found }}" -ne "false") {
+            throw "DbgEng SDK should not be prepared unless debugger=true."
           }
 
-      - name: build cmake user e2e targets
+      - name: build cmake user e2e targets without debugger
         shell: powershell
         env:
           CMAKE_GENERATOR: ${{ steps.wdk7.outputs.cmake-generator }}
           WDK7_TOOLCHAIN_FILE: ${{ steps.wdk7.outputs.toolchain-file }}
+        run: |
+          $source = Join-Path $PWD "test\e2e\cmake"
+          $expected = @(
+            "e2e_cli.exe",
+            "e2e_dll.dll",
+            "e2e_lib.lib",
+            "e2e_native.exe"
+          )
+
+          foreach ($arch in @("i386", "amd64")) {
+            $build = Join-Path $PWD ".e2e\cmake-basic-$arch"
+
+            cmake -S $source -B $build -G $env:CMAKE_GENERATOR `
+              "-DCMAKE_TOOLCHAIN_FILE=$env:WDK7_TOOLCHAIN_FILE" `
+              "-DWDK7_ARCH=$arch" `
+              "-DCMAKE_BUILD_TYPE=Release"
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+
+            cmake --build $build --config Release
+            if ($LASTEXITCODE -ne 0) {
+              exit $LASTEXITCODE
+            }
+
+            foreach ($file in $expected) {
+              $path = Join-Path $build $file
+              if (-not (Test-Path -LiteralPath $path)) {
+                throw "Missing CMake $arch output: $path"
+              }
+            }
+
+            $dbgengPath = Join-Path $build "e2e_dbgeng.exe"
+            if (Test-Path -LiteralPath $dbgengPath) {
+              throw "DbgEng target was built without debugger=true: $dbgengPath"
+            }
+          }
+
+      - name: setup wdk7 with debugger
+        id: wdk7_debugger
+        uses: ./
+        with:
+          debugger: true
+
+      - name: verify debugger setup
+        shell: powershell
+        run: |
+          if ("${{ steps.wdk7_debugger.outputs.found }}" -ne "true") {
+            throw "WDK7 was not prepared."
+          }
+          if ("${{ steps.wdk7_debugger.outputs.dbgeng-found }}" -ne "true") {
+            throw "DbgEng SDK was not prepared with debugger=true."
+          }
+
+          "debuggers-root=${{ steps.wdk7_debugger.outputs.debuggers-root }}"
+          "dbgeng-include-dir=${{ steps.wdk7_debugger.outputs.dbgeng-include-dir }}"
+          "dbgeng-lib-i386=${{ steps.wdk7_debugger.outputs.dbgeng-lib-i386 }}"
+          "dbgeng-lib-amd64=${{ steps.wdk7_debugger.outputs.dbgeng-lib-amd64 }}"
+
+      - name: build cmake user e2e targets with debugger
+        shell: powershell
+        env:
+          CMAKE_GENERATOR: ${{ steps.wdk7_debugger.outputs.cmake-generator }}
+          WDK7_TOOLCHAIN_FILE: ${{ steps.wdk7_debugger.outputs.toolchain-file }}
         run: |
           $source = Join-Path $PWD "test\e2e\cmake"
           $expected = @(
@@ -65,7 +129,7 @@ jobs:
           )
 
           foreach ($arch in @("i386", "amd64")) {
-            $build = Join-Path $PWD ".e2e\cmake-$arch"
+            $build = Join-Path $PWD ".e2e\cmake-dbgeng-$arch"
 
             cmake -S $source -B $build -G $env:CMAKE_GENERATOR `
               "-DCMAKE_TOOLCHAIN_FILE=$env:WDK7_TOOLCHAIN_FILE" `

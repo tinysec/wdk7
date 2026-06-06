@@ -67145,23 +67145,23 @@ function isFeatureAvailable() {
   }
 }
 function restoreCache(paths_1, primaryKey_1, restoreKeys_1, options_1) {
-  return __awaiter17(this, arguments, void 0, function* (paths, primaryKey, restoreKeys2, options, enableCrossOsArchive = false) {
+  return __awaiter17(this, arguments, void 0, function* (paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
     const cacheServiceVersion = getCacheServiceVersion();
     debug(`Cache service version: ${cacheServiceVersion}`);
     checkPaths(paths);
     switch (cacheServiceVersion) {
       case "v2":
-        return yield restoreCacheV2(paths, primaryKey, restoreKeys2, options, enableCrossOsArchive);
+        return yield restoreCacheV2(paths, primaryKey, restoreKeys, options, enableCrossOsArchive);
       case "v1":
       default:
-        return yield restoreCacheV1(paths, primaryKey, restoreKeys2, options, enableCrossOsArchive);
+        return yield restoreCacheV1(paths, primaryKey, restoreKeys, options, enableCrossOsArchive);
     }
   });
 }
 function restoreCacheV1(paths_1, primaryKey_1, restoreKeys_1, options_1) {
-  return __awaiter17(this, arguments, void 0, function* (paths, primaryKey, restoreKeys2, options, enableCrossOsArchive = false) {
-    restoreKeys2 = restoreKeys2 || [];
-    const keys = [primaryKey, ...restoreKeys2];
+  return __awaiter17(this, arguments, void 0, function* (paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
+    restoreKeys = restoreKeys || [];
+    const keys = [primaryKey, ...restoreKeys];
     debug("Resolved Keys:");
     debug(JSON.stringify(keys));
     if (keys.length > 10) {
@@ -67217,10 +67217,10 @@ function restoreCacheV1(paths_1, primaryKey_1, restoreKeys_1, options_1) {
   });
 }
 function restoreCacheV2(paths_1, primaryKey_1, restoreKeys_1, options_1) {
-  return __awaiter17(this, arguments, void 0, function* (paths, primaryKey, restoreKeys2, options, enableCrossOsArchive = false) {
+  return __awaiter17(this, arguments, void 0, function* (paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
     options = Object.assign(Object.assign({}, options), { useAzureSdk: true });
-    restoreKeys2 = restoreKeys2 || [];
-    const keys = [primaryKey, ...restoreKeys2];
+    restoreKeys = restoreKeys || [];
+    const keys = [primaryKey, ...restoreKeys];
     debug("Resolved Keys:");
     debug(JSON.stringify(keys));
     if (keys.length > 10) {
@@ -67235,7 +67235,7 @@ function restoreCacheV2(paths_1, primaryKey_1, restoreKeys_1, options_1) {
       const compressionMethod = yield getCompressionMethod();
       const request = {
         key: primaryKey,
-        restoreKeys: restoreKeys2,
+        restoreKeys,
         version: getCacheVersion(paths, compressionMethod, enableCrossOsArchive)
       };
       const response = yield twirpClient.GetCacheEntryDownloadURL(request);
@@ -67463,14 +67463,15 @@ var defaultDownloadUrls = [
   "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
 ];
 var cmakeGenerator = "NMake Makefiles";
-var cacheKey = "wdk-7600.16385.1";
-var restoreKeys = [];
+var wdkOnlyCacheKey = "wdk-7600.16385.1";
+var debuggerCacheKey = "wdk-7600.16385.1-debugger";
 var downloadRetries = 3;
 function readInputs() {
   const downloadUrls = splitDownloadUrls(getInput("download-url"));
   return {
     root: getInput("root"),
-    downloadUrls: uniqueStrings([...downloadUrls, ...defaultDownloadUrls])
+    downloadUrls: uniqueStrings([...downloadUrls, ...defaultDownloadUrls]),
+    debugger: readBooleanInput("debugger", false)
   };
 }
 function splitDownloadUrls(value) {
@@ -67487,6 +67488,19 @@ function uniqueStrings(values) {
     }
   }
   return result;
+}
+function readBooleanInput(name, defaultValue) {
+  const value = getInput(name).trim().toLowerCase();
+  if (!value) {
+    return defaultValue;
+  }
+  if (value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  throw new Error(`Input '${name}' must be true or false.`);
 }
 function actionRoot() {
   return path12.dirname(path12.dirname(fileURLToPath2(import.meta.url)));
@@ -68038,14 +68052,14 @@ async function installWdk7FromIso(isoPath, targetRoot) {
     await dismountIso(isoPath);
   }
 }
-async function restoreActionCache(cacheRoot, cacheKey2, restoreKeys2) {
+async function restoreActionCache(cacheRoot, cacheKey, restoreKeys) {
   if (!isFeatureAvailable()) {
     info("Actions cache service is not available; using local disk cache only.");
     return void 0;
   }
   try {
-    info(`Restoring WDK7 cache with key '${cacheKey2}'.`);
-    const hit = await restoreCache([cacheRoot], cacheKey2, restoreKeys2);
+    info(`Restoring WDK7 cache with key '${cacheKey}'.`);
+    const hit = await restoreCache([cacheRoot], cacheKey, restoreKeys);
     if (hit) {
       info(`Restored WDK7 cache from key '${hit}'.`);
     } else {
@@ -68057,14 +68071,14 @@ async function restoreActionCache(cacheRoot, cacheKey2, restoreKeys2) {
     return void 0;
   }
 }
-async function saveActionCache(cacheRoot, cacheKey2) {
+async function saveActionCache(cacheRoot, cacheKey) {
   if (!isFeatureAvailable()) {
     info("Actions cache service is not available; skipping WDK7 cache save.");
     return;
   }
   try {
-    info(`Saving WDK7 cache with key '${cacheKey2}'.`);
-    await saveCache2([cacheRoot], cacheKey2);
+    info(`Saving WDK7 cache with key '${cacheKey}'.`);
+    await saveCache2([cacheRoot], cacheKey);
   } catch (error2) {
     warning(`WDK7 cache save skipped: ${error2 instanceof Error ? error2.message : String(error2)}`);
   }
@@ -68124,12 +68138,21 @@ function publishNotFound(reason) {
   setOutput("cache-hit", "false");
   publishDebuggersSdk(void 0);
 }
+async function prepareOptionalDebuggersSdk(enabled2, wdkRoot, cacheRoot, downloadUrls) {
+  if (!enabled2) {
+    info("Debugging Tools SDK was not requested. Set debugger: true to prepare DbgEng headers and libraries.");
+    return { cacheChanged: false };
+  }
+  return prepareDebuggersSdk(wdkRoot, cacheRoot, downloadUrls);
+}
 async function run() {
   if (process.platform !== "win32") {
     throw new Error("wdk7 only runs on Windows.");
   }
   const inputs = readInputs();
   const cacheRoot = defaultCacheRoot();
+  const cacheKey = inputs.debugger ? debuggerCacheKey : wdkOnlyCacheKey;
+  const restoreKeys = inputs.debugger ? [wdkOnlyCacheKey] : [];
   mkdirSync(cacheRoot, { recursive: true });
   publishStaticOutputs();
   let restoredCacheKey;
@@ -68142,18 +68165,18 @@ async function run() {
   };
   const installed = findWdk7Root(inputs.root, cacheRoot, false);
   if (installed) {
-    let sdk = findDbgEngSdk(installed.root, cacheRoot);
+    let sdk = inputs.debugger ? findDbgEngSdk(installed.root, cacheRoot) : void 0;
     let cacheChanged = false;
-    if (!sdk) {
+    if (inputs.debugger && !sdk) {
       await restoreCacheOnce();
       sdk = findDbgEngSdk(installed.root, cacheRoot);
     }
-    if (!sdk) {
-      const prepared2 = await prepareDebuggersSdk(installed.root, cacheRoot, inputs.downloadUrls);
+    if (inputs.debugger && !sdk) {
+      const prepared2 = await prepareOptionalDebuggersSdk(true, installed.root, cacheRoot, inputs.downloadUrls);
       sdk = prepared2.sdk;
       cacheChanged = prepared2.cacheChanged;
     }
-    if (cacheChanged && restoredCacheKey !== cacheKey) {
+    if (inputs.debugger && (cacheChanged || sdk) && restoredCacheKey !== cacheKey) {
       await saveActionCache(cacheRoot, cacheKey);
     }
     publishWdk7(installed.root, installed.source, Boolean(restoredCacheKey), sdk);
@@ -68162,8 +68185,8 @@ async function run() {
   await restoreCacheOnce();
   const found = findWdk7Root(inputs.root, cacheRoot, true) ?? findCachedWdk7Root(cacheRoot);
   if (found) {
-    const prepared2 = await prepareDebuggersSdk(found.root, cacheRoot, inputs.downloadUrls);
-    if (prepared2.cacheChanged && restoredCacheKey !== cacheKey) {
+    const prepared2 = await prepareOptionalDebuggersSdk(inputs.debugger, found.root, cacheRoot, inputs.downloadUrls);
+    if (restoredCacheKey !== cacheKey) {
       await saveActionCache(cacheRoot, cacheKey);
     }
     publishWdk7(
@@ -68187,7 +68210,7 @@ async function run() {
   if (!resolvedRoot) {
     throw new Error("WDK7 extraction completed, but no valid WDK7 root was found.");
   }
-  const prepared = await prepareDebuggersSdk(resolvedRoot, cacheRoot, inputs.downloadUrls);
+  const prepared = await prepareOptionalDebuggersSdk(inputs.debugger, resolvedRoot, cacheRoot, inputs.downloadUrls);
   if (restoredCacheKey !== cacheKey) {
     await saveActionCache(cacheRoot, cacheKey);
   }

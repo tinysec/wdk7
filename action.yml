@@ -8,6 +8,9 @@ inputs:
   download-url:
     description: Optional WDK7 ISO URL list. Separate multiple URLs with newlines, commas, or semicolons. Built-in Microsoft URLs are tried after these URLs.
     default: ""
+  debugger:
+    description: Prepare the Debugging Tools SDK and expose DbgEng include/library outputs.
+    default: "false"
 
 outputs:
   found:
@@ -27,7 +30,7 @@ outputs:
   cmake-generator:
     description: Recommended CMake generator for the WDK7 toolchain.
   dbgeng-found:
-    description: true when a usable DbgEng SDK was found or prepared.
+    description: true when debugger=true and a usable DbgEng SDK was found or prepared.
   debuggers-root:
     description: Resolved Debugging Tools root when dbgeng-found is true.
   dbgeng-include-dir:

@@ -12,8 +12,8 @@ const defaultDownloadUrls = [
   "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
 ];
 const cmakeGenerator = "NMake Makefiles";
-const cacheKey = "wdk-7600.16385.1";
-const restoreKeys: string[] = [];
+const wdkOnlyCacheKey = "wdk-7600.16385.1";
+const debuggerCacheKey = "wdk-7600.16385.1-debugger";
 const downloadRetries = 3;
 
 interface Candidate {
@@ -24,6 +24,7 @@ interface Candidate {
 interface Inputs {
   root: string;
   downloadUrls: string[];
+  debugger: boolean;
 }
 
 interface DebuggersSdk {
@@ -40,7 +41,8 @@ function readInputs(): Inputs {
 
   return {
     root: core.getInput("root"),
-    downloadUrls: uniqueStrings([...downloadUrls, ...defaultDownloadUrls])
+    downloadUrls: uniqueStrings([...downloadUrls, ...defaultDownloadUrls]),
+    debugger: readBooleanInput("debugger", false)
   };
 }
 
@@ -64,6 +66,20 @@ function uniqueStrings(values: string[]): string[] {
   }
 
   return result;
+}
+
+function readBooleanInput(name: string, defaultValue: boolean): boolean {
+  const value = core.getInput(name).trim().toLowerCase();
+  if (!value) {
+    return defaultValue;
+  }
+  if (value === "true") {
+    return true;
+  }
+  if (value === "false") {
+    return false;
+  }
+  throw new Error(`Input '${name}' must be true or false.`);
 }
 
 function actionRoot(): string {
@@ -855,6 +871,20 @@ function publishNotFound(reason: string): void {
   publishDebuggersSdk(undefined);
 }
 
+async function prepareOptionalDebuggersSdk(
+  enabled: boolean,
+  wdkRoot: string,
+  cacheRoot: string,
+  downloadUrls: string[]
+): Promise<{ sdk?: DebuggersSdk; cacheChanged: boolean }> {
+  if (!enabled) {
+    core.info("Debugging Tools SDK was not requested. Set debugger: true to prepare DbgEng headers and libraries.");
+    return { cacheChanged: false };
+  }
+
+  return prepareDebuggersSdk(wdkRoot, cacheRoot, downloadUrls);
+}
+
 async function run(): Promise<void> {
   if (process.platform !== "win32") {
     throw new Error("wdk7 only runs on Windows.");
@@ -862,6 +892,8 @@ async function run(): Promise<void> {
 
   const inputs = readInputs();
   const cacheRoot = defaultCacheRoot();
+  const cacheKey = inputs.debugger ? debuggerCacheKey : wdkOnlyCacheKey;
+  const restoreKeys = inputs.debugger ? [wdkOnlyCacheKey] : [];
   mkdirSync(cacheRoot, { recursive: true });
   publishStaticOutputs();
 
@@ -876,21 +908,21 @@ async function run(): Promise<void> {
 
   const installed = findWdk7Root(inputs.root, cacheRoot, false);
   if (installed) {
-    let sdk = findDbgEngSdk(installed.root, cacheRoot);
+    let sdk = inputs.debugger ? findDbgEngSdk(installed.root, cacheRoot) : undefined;
     let cacheChanged = false;
 
-    if (!sdk) {
+    if (inputs.debugger && !sdk) {
       await restoreCacheOnce();
       sdk = findDbgEngSdk(installed.root, cacheRoot);
     }
 
-    if (!sdk) {
-      const prepared = await prepareDebuggersSdk(installed.root, cacheRoot, inputs.downloadUrls);
+    if (inputs.debugger && !sdk) {
+      const prepared = await prepareOptionalDebuggersSdk(true, installed.root, cacheRoot, inputs.downloadUrls);
       sdk = prepared.sdk;
       cacheChanged = prepared.cacheChanged;
     }
 
-    if (cacheChanged && restoredCacheKey !== cacheKey) {
+    if (inputs.debugger && (cacheChanged || sdk) && restoredCacheKey !== cacheKey) {
       await saveActionCache(cacheRoot, cacheKey);
     }
 
@@ -902,8 +934,8 @@ async function run(): Promise<void> {
 
   const found = findWdk7Root(inputs.root, cacheRoot, true) ?? findCachedWdk7Root(cacheRoot);
   if (found) {
-    const prepared = await prepareDebuggersSdk(found.root, cacheRoot, inputs.downloadUrls);
-    if (prepared.cacheChanged && restoredCacheKey !== cacheKey) {
+    const prepared = await prepareOptionalDebuggersSdk(inputs.debugger, found.root, cacheRoot, inputs.downloadUrls);
+    if (restoredCacheKey !== cacheKey) {
       await saveActionCache(cacheRoot, cacheKey);
     }
 
@@ -936,7 +968,7 @@ async function run(): Promise<void> {
     throw new Error("WDK7 extraction completed, but no valid WDK7 root was found.");
   }
 
-  const prepared = await prepareDebuggersSdk(resolvedRoot, cacheRoot, inputs.downloadUrls);
+  const prepared = await prepareOptionalDebuggersSdk(inputs.debugger, resolvedRoot, cacheRoot, inputs.downloadUrls);
 
   if (restoredCacheKey !== cacheKey) {
     await saveActionCache(cacheRoot, cacheKey);
