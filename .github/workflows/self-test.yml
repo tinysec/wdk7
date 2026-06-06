@@ -9,32 +9,28 @@ on:
 jobs:
   detect:
     runs-on: windows-2025
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-            bin: amd64
-          - arch: i386
-            bin: x86
     steps:
       - name: create fake wdk7
         id: fake
         shell: powershell
         run: |
           $root = Join-Path $env:RUNNER_TEMP "fake-wdk7"
-          $targetBin = Join-Path $root "bin\x86\${{ matrix.bin }}"
           $hostBin = Join-Path $root "bin\x86"
+          $x86Bin = Join-Path $root "bin\x86\x86"
+          $amd64Bin = Join-Path $root "bin\x86\amd64"
           New-Item -ItemType Directory -Force -Path `
             (Join-Path $root "inc\api"), `
             (Join-Path $root "inc\ddk"), `
-            $targetBin, `
+            $x86Bin, `
+            $amd64Bin, `
             $hostBin | Out-Null
 
           foreach ($file in @(
             (Join-Path $root "bin\setenv.bat"),
-            (Join-Path $targetBin "cl.exe"),
-            (Join-Path $targetBin "link.exe"),
+            (Join-Path $x86Bin "cl.exe"),
+            (Join-Path $x86Bin "link.exe"),
+            (Join-Path $amd64Bin "cl.exe"),
+            (Join-Path $amd64Bin "link.exe"),
             (Join-Path $hostBin "nmake.exe"),
             (Join-Path $hostBin "rc.exe")
           )) {
@@ -47,16 +43,13 @@ jobs:
         id: wdk7
         uses: tinysec/wdk7@master
         with:
-          arch: ${{ matrix.arch }}
           root: ${{ steps.fake.outputs.root }}
-          cache: "false"
 
       - name: show outputs
         shell: powershell
         run: |
           "found=${{ steps.wdk7.outputs.found }}"
           "root=${{ steps.wdk7.outputs.root }}"
-          "arch=${{ steps.wdk7.outputs.arch }}"
           "source=${{ steps.wdk7.outputs.source }}"
           "cache-hit=${{ steps.wdk7.outputs.cache-hit }}"
           "toolchain-file=${{ steps.wdk7.outputs.toolchain-file }}"

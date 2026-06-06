@@ -1,8 +1,6 @@
 import * as core from "@actions/core";
 import * as actionsCache from "@actions/cache";
-import { createHash } from "node:crypto";
 import { createWriteStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
-import { open } from "node:fs/promises";
 import * as http from "node:http";
 import * as https from "node:https";
 import * as os from "node:os";
@@ -12,8 +10,9 @@ import { spawn } from "node:child_process";
 const defaultDownloadUrl =
   "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO";
 const cmakeGenerator = "NMake Makefiles";
-
-type WdkArch = "amd64" | "i386";
+const cacheKey = "wdk7-7600.16385.1";
+const restoreKeys = ["wdk7-"];
+const downloadRetries = 3;
 
 interface Candidate {
   root: string;
@@ -21,85 +20,14 @@ interface Candidate {
 }
 
 interface Inputs {
-  arch: WdkArch;
   root: string;
-  downloadRetries: number;
   downloadUrl: string;
-  sha256: string;
-  cache: boolean;
-  cacheKey: string;
-  restoreKeys: string[];
-  cacheRoot: string;
-  installRoot: string;
-  failOnError: boolean;
-}
-
-function parseBool(value: string): boolean {
-  switch (value.trim().toLowerCase()) {
-    case "1":
-    case "true":
-    case "yes":
-    case "on":
-      return true;
-    case "0":
-    case "false":
-    case "no":
-    case "off":
-    case "":
-      return false;
-    default:
-      throw new Error(`Invalid boolean value '${value}'.`);
-  }
-}
-
-function normalizeArch(value: string): WdkArch {
-  switch (value.trim().toLowerCase()) {
-    case "amd64":
-    case "x64":
-    case "64":
-      return "amd64";
-    case "i386":
-    case "x86":
-    case "win32":
-    case "32":
-      return "i386";
-    default:
-      throw new Error(`Unsupported WDK7 architecture '${value}'. Use amd64 or i386.`);
-  }
-}
-
-function parsePositiveInteger(value: string, fallback: number): number {
-  if (!value.trim()) {
-    return fallback;
-  }
-
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed) || parsed < 1) {
-    throw new Error(`Invalid positive integer value '${value}'.`);
-  }
-  return parsed;
-}
-
-function parseRestoreKeys(value: string): string[] {
-  return value
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(Boolean);
 }
 
 function readInputs(): Inputs {
   return {
-    arch: normalizeArch(core.getInput("arch") || "amd64"),
     root: core.getInput("root"),
-    downloadRetries: parsePositiveInteger(core.getInput("download-retries"), 3),
-    downloadUrl: core.getInput("download-url") || defaultDownloadUrl,
-    sha256: core.getInput("sha256"),
-    cache: parseBool(core.getInput("cache") || "true"),
-    cacheKey: core.getInput("cache-key") || "wdk7-7600.16385.1",
-    restoreKeys: parseRestoreKeys(core.getInput("restore-keys") || "wdk7-"),
-    cacheRoot: core.getInput("cache-root"),
-    installRoot: core.getInput("install-root"),
-    failOnError: parseBool(core.getInput("fail-on-error") || "false")
+    downloadUrl: core.getInput("download-url") || defaultDownloadUrl
   };
 }
 
@@ -111,8 +39,7 @@ function toolchainFile(): string {
   return path.join(actionRoot(), "cmake", "wdk7.cmake");
 }
 
-function publishStaticOutputs(cacheKey: string): void {
-  core.setOutput("cache-key", cacheKey);
+function publishStaticOutputs(): void {
   core.setOutput("toolchain-file", toolchainFile());
   core.setOutput("cmake-generator", cmakeGenerator);
 }
@@ -128,8 +55,11 @@ function fullPath(value: string): string {
   return path.resolve(expandEnvironment(value));
 }
 
-function targetBin(root: string, arch: WdkArch): string {
-  return path.join(root, "bin", "x86", arch === "amd64" ? "amd64" : "x86");
+function targetBins(root: string): string[] {
+  return [
+    path.join(root, "bin", "x86", "x86"),
+    path.join(root, "bin", "x86", "amd64")
+  ];
 }
 
 function hostBin(root: string): string {
@@ -140,7 +70,7 @@ function isFileOrDirectoryPresent(candidatePath: string): boolean {
   return existsSync(candidatePath);
 }
 
-function isWdk7Root(root: string, arch: WdkArch): boolean {
+function isWdk7Root(root: string): boolean {
   if (!root.trim()) {
     return false;
   }
@@ -150,10 +80,12 @@ function isWdk7Root(root: string, arch: WdkArch): boolean {
     path.join(resolved, "bin", "setenv.bat"),
     path.join(resolved, "inc", "api"),
     path.join(resolved, "inc", "ddk"),
-    path.join(targetBin(resolved, arch), "cl.exe"),
-    path.join(targetBin(resolved, arch), "link.exe"),
     path.join(hostBin(resolved), "nmake.exe"),
-    path.join(hostBin(resolved), "rc.exe")
+    path.join(hostBin(resolved), "rc.exe"),
+    ...targetBins(resolved).flatMap(bin => [
+      path.join(bin, "cl.exe"),
+      path.join(bin, "link.exe")
+    ])
   ];
 
   return required.every(isFileOrDirectoryPresent);
@@ -181,7 +113,6 @@ function addCandidate(candidates: Candidate[], root: string | undefined, source:
 }
 
 function findWdk7Root(
-  arch: WdkArch,
   requestedRoot: string,
   cacheRoot: string,
   includeCache: boolean
@@ -202,16 +133,16 @@ function findWdk7Root(
   addCandidate(candidates, "C:\\WinDDK\\7600.16385.1", "default");
   addCandidate(candidates, "C:\\WinDDK\\7600.16385.win7_wdk.100208-1538", "default");
 
-  return candidates.find(candidate => isWdk7Root(candidate.root, arch));
+  return candidates.find(candidate => isWdk7Root(candidate.root));
 }
 
-function findWdk7RootUnder(basePath: string, arch: WdkArch): string | undefined {
+function findWdk7RootUnder(basePath: string): string | undefined {
   const resolvedBase = fullPath(basePath);
   if (!resolvedBase || !existsSync(resolvedBase)) {
     return undefined;
   }
 
-  if (isWdk7Root(resolvedBase, arch)) {
+  if (isWdk7Root(resolvedBase)) {
     return resolvedBase;
   }
 
@@ -242,7 +173,7 @@ function findWdk7RootUnder(basePath: string, arch: WdkArch): string | undefined 
         stack.push(entryPath);
       } else if (entry.toLowerCase() === "setenv.bat") {
         const root = path.dirname(path.dirname(entryPath));
-        if (isWdk7Root(root, arch)) {
+        if (isWdk7Root(root)) {
           return fullPath(root);
         }
       }
@@ -376,26 +307,6 @@ async function downloadFileWithRetries(urlText: string, outputPath: string, atte
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
-async function assertSha256(filePath: string, expected: string): Promise<void> {
-  if (!expected.trim()) {
-    return;
-  }
-
-  const handle = await open(filePath, "r");
-  try {
-    const hash = createHash("sha256");
-    for await (const chunk of handle.createReadStream()) {
-      hash.update(chunk);
-    }
-    const actual = hash.digest("hex");
-    if (actual.toLowerCase() !== expected.trim().toLowerCase()) {
-      throw new Error(`SHA-256 mismatch for '${filePath}'. Expected ${expected}, got ${actual}.`);
-    }
-  } finally {
-    await handle.close();
-  }
-}
-
 async function mountIso(isoPath: string): Promise<string> {
   const script = path.join(actionRoot(), "scripts", "mount-iso.ps1");
   const output = await runProcess("powershell.exe", [
@@ -504,37 +415,31 @@ async function saveActionCache(cacheRoot: string, cacheKey: string): Promise<voi
   }
 }
 
-function publishWdk7(root: string, arch: WdkArch, source: string, cacheHit: boolean, cacheKey: string): void {
+function publishWdk7(root: string, source: string, cacheHit: boolean): void {
   const resolvedRoot = fullPath(root);
-  const bin = targetBin(resolvedRoot, arch);
   const host = hostBin(resolvedRoot);
 
   core.exportVariable("WDK7_ROOT", resolvedRoot);
   core.exportVariable("W7BASE", resolvedRoot);
-  core.exportVariable("WDK7_ARCH", arch);
-  core.exportVariable("WDK7_BIN", bin);
   core.exportVariable("WDK7_HOST_BIN", host);
   core.exportVariable("WDK7_CMAKE_TOOLCHAIN_FILE", toolchainFile());
   core.exportVariable("WDK7_CMAKE_GENERATOR", cmakeGenerator);
 
-  core.addPath(bin);
   core.addPath(host);
 
   core.setOutput("found", "true");
   core.setOutput("root", resolvedRoot);
-  core.setOutput("arch", arch);
   core.setOutput("source", source);
   core.setOutput("cache-hit", cacheHit ? "true" : "false");
 
-  core.info(`WDK7 ready: root='${resolvedRoot}' arch='${arch}' source='${source}'`);
+  core.info(`WDK7 ready: root='${resolvedRoot}' source='${source}'`);
 }
 
-function publishNotFound(arch: WdkArch, reason: string, cacheKey = "wdk7-7600.16385.1"): void {
+function publishNotFound(reason: string): void {
   core.info(reason);
-  publishStaticOutputs(cacheKey);
+  publishStaticOutputs();
   core.setOutput("found", "false");
   core.setOutput("root", "");
-  core.setOutput("arch", arch);
   core.setOutput("source", "none");
   core.setOutput("cache-hit", "false");
 }
@@ -545,37 +450,31 @@ async function run(): Promise<void> {
   }
 
   const inputs = readInputs();
-  const cacheRoot = fullPath(inputs.cacheRoot) || defaultCacheRoot();
+  const cacheRoot = defaultCacheRoot();
   mkdirSync(cacheRoot, { recursive: true });
-  publishStaticOutputs(inputs.cacheKey);
+  publishStaticOutputs();
 
-  const installed = findWdk7Root(inputs.arch, inputs.root, cacheRoot, false);
+  const installed = findWdk7Root(inputs.root, cacheRoot, false);
   if (installed) {
-    publishWdk7(installed.root, inputs.arch, installed.source, false, inputs.cacheKey);
+    publishWdk7(installed.root, installed.source, false);
     return;
   }
 
   let restoredCacheKey: string | undefined;
-  if (inputs.cache) {
-    restoredCacheKey = await restoreActionCache(cacheRoot, inputs.cacheKey, inputs.restoreKeys);
-  } else {
-    core.info("WDK7 actions/cache integration is disabled.");
-  }
+  restoredCacheKey = await restoreActionCache(cacheRoot, cacheKey, restoreKeys);
 
-  const found = findWdk7Root(inputs.arch, inputs.root, cacheRoot, true);
+  const found = findWdk7Root(inputs.root, cacheRoot, true);
   if (found) {
     publishWdk7(
       found.root,
-      inputs.arch,
       found.source,
       found.source === "cache" || Boolean(restoredCacheKey),
-      inputs.cacheKey
     );
     return;
   }
 
   if (!inputs.downloadUrl.trim()) {
-    publishNotFound(inputs.arch, "WDK7 was not found and no download URL was provided.", inputs.cacheKey);
+    publishNotFound("WDK7 was not found and no download URL was provided.");
     return;
   }
 
@@ -584,45 +483,29 @@ async function run(): Promise<void> {
     core.info(`Using cached WDK7 ISO: ${isoPath}`);
   } else {
     core.info(`Downloading WDK7 ISO from: ${inputs.downloadUrl}`);
-    await downloadFileWithRetries(inputs.downloadUrl, isoPath, inputs.downloadRetries);
+    await downloadFileWithRetries(inputs.downloadUrl, isoPath, downloadRetries);
   }
 
-  await assertSha256(isoPath, inputs.sha256);
-
-  const targetRoot = fullPath(inputs.installRoot) || path.join(cacheRoot, "7600.16385.1");
-  if (!isWdk7Root(targetRoot, inputs.arch)) {
+  const targetRoot = path.join(cacheRoot, "7600.16385.1");
+  if (!isWdk7Root(targetRoot)) {
     await installWdk7FromIso(isoPath, targetRoot);
   }
 
   const resolvedRoot =
-    findWdk7RootUnder(targetRoot, inputs.arch) ??
-    findWdk7RootUnder("C:\\WinDDK", inputs.arch);
+    findWdk7RootUnder(targetRoot) ??
+    findWdk7RootUnder("C:\\WinDDK");
 
   if (!resolvedRoot) {
     throw new Error("WDK7 extraction completed, but no valid WDK7 root was found.");
   }
 
-  if (inputs.cache && restoredCacheKey !== inputs.cacheKey) {
-    await saveActionCache(cacheRoot, inputs.cacheKey);
+  if (restoredCacheKey !== cacheKey) {
+    await saveActionCache(cacheRoot, cacheKey);
   }
 
-  publishWdk7(resolvedRoot, inputs.arch, "download", false, inputs.cacheKey);
+  publishWdk7(resolvedRoot, "download", false);
 }
 
 run().catch(error => {
-  let arch: WdkArch = "amd64";
-  let failOnError = false;
-
-  try {
-    arch = normalizeArch(core.getInput("arch") || "amd64");
-    failOnError = parseBool(core.getInput("fail-on-error") || "false");
-  } catch {
-    // Keep fallback defaults for malformed inputs.
-  }
-
-  if (failOnError) {
-    core.setFailed(error instanceof Error ? error.message : String(error));
-  } else {
-    publishNotFound(arch, `wdk7 failed: ${error instanceof Error ? error.message : String(error)}`);
-  }
+  publishNotFound(`wdk7 failed: ${error instanceof Error ? error.message : String(error)}`);
 });

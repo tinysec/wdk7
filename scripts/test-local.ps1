@@ -1,23 +1,14 @@
 [CmdletBinding()]
 param(
-    [string]$Arch = "amd64",
     [string]$Root = "",
-    [string]$DownloadRetries = "3",
-    [string]$DownloadUrl = "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO",
-    [string]$Sha256 = "",
-    [string]$Cache = "false",
-    [string]$CacheKey = "wdk7-7600.16385.1",
-    [string]$RestoreKeys = "wdk7-",
-    [string]$CacheRoot = "",
-    [string]$InstallRoot = "",
-    [string]$FailOnError = "true"
+    [string]$DownloadUrl = "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
 )
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$debugRoot = Join-Path $repoRoot ".action-debug\$Arch-$PID"
+$debugRoot = Join-Path $repoRoot ".action-debug\$PID"
 New-Item -ItemType Directory -Force -Path $debugRoot | Out-Null
 
 $env:GITHUB_ACTION_PATH = $repoRoot
@@ -28,17 +19,8 @@ $env:GITHUB_PATH = Join-Path $debugRoot "github-path.txt"
 Remove-Item -LiteralPath $env:GITHUB_OUTPUT, $env:GITHUB_ENV, $env:GITHUB_PATH -Force -ErrorAction SilentlyContinue
 New-Item -ItemType File -Force -Path $env:GITHUB_OUTPUT, $env:GITHUB_ENV, $env:GITHUB_PATH | Out-Null
 
-Set-Item -Path "Env:INPUT_ARCH" -Value $Arch
 Set-Item -Path "Env:INPUT_ROOT" -Value $Root
-Set-Item -Path "Env:INPUT_DOWNLOAD-RETRIES" -Value $DownloadRetries
 Set-Item -Path "Env:INPUT_DOWNLOAD-URL" -Value $DownloadUrl
-Set-Item -Path "Env:INPUT_SHA256" -Value $Sha256
-Set-Item -Path "Env:INPUT_CACHE" -Value $Cache
-Set-Item -Path "Env:INPUT_CACHE-KEY" -Value $CacheKey
-Set-Item -Path "Env:INPUT_RESTORE-KEYS" -Value $RestoreKeys
-Set-Item -Path "Env:INPUT_CACHE-ROOT" -Value $CacheRoot
-Set-Item -Path "Env:INPUT_INSTALL-ROOT" -Value $InstallRoot
-Set-Item -Path "Env:INPUT_FAIL-ON-ERROR" -Value $FailOnError
 
 $entry = Join-Path $repoRoot "dist\index.js"
 if (-not (Test-Path -LiteralPath $entry)) {
