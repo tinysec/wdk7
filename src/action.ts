@@ -222,6 +222,10 @@ export function publishWdk7(root: string, source: string, cacheHit: boolean, sdk
   // invoke NMake and rc.exe after the action step completes.
   core.addPath(host);
 
+  // The action root is added so legacy projects can run ddkbuild.cmd directly
+  // without reaching through a step output for the bundled wrapper path.
+  core.addPath(actionRoot());
+
   core.setOutput("found", "true");
   core.setOutput("root", resolvedRoot);
   core.setOutput("source", source);

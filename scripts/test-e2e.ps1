@@ -34,6 +34,27 @@ function Assert-ExistingPath {
 
 <#
 .SYNOPSIS
+Ensures a command is available through PATH before the e2e script uses it.
+
+.DESCRIPTION
+The action adds bundled helper commands to PATH for downstream steps. Checking
+command resolution directly protects the user-facing contract that legacy
+projects can call ddkbuild.cmd without referencing an action output.
+#>
+function Assert-CommandAvailable {
+    param(
+        [string]$CommandName
+    )
+
+    # Get-Command tests the same PATH-based resolution that a later cmd.exe call
+    # relies on when it invokes the bundled batch wrapper.
+    if ($null -eq (Get-Command $CommandName -ErrorAction SilentlyContinue)) {
+        throw "$CommandName is not available on PATH."
+    }
+}
+
+<#
+.SYNOPSIS
 Runs a command and exits with the command's status when it fails.
 
 .DESCRIPTION
@@ -198,7 +219,7 @@ function Build-DdkbuildTarget {
         # expects normal cmd call semantics. The source path stays relative
         # because legacy ddkbuild path handling is more reliable with repo-local
         # target directories than with absolute workflow paths.
-        Invoke-Checked "cmd" @("/s", "/c", "call ""$env:WDK7_DDKBUILD_CMD"" $target free ""$source""")
+        Invoke-Checked "cmd" @("/s", "/c", "call ddkbuild.cmd $target free ""$source""")
     }
 
     $sysFiles = @(Get-ChildItem -Path $sourcePath -Recurse -Filter e2e_ddkbuild.sys)
@@ -214,7 +235,7 @@ function Build-DdkbuildTarget {
 
 Assert-ExistingPath $env:WDK7_ROOT "WDK7_ROOT is not set or does not exist."
 Assert-ExistingPath $env:WDK7_CMAKE_TOOLCHAIN_FILE "WDK7_CMAKE_TOOLCHAIN_FILE is not set or does not exist."
-Assert-ExistingPath $env:WDK7_DDKBUILD_CMD "WDK7_DDKBUILD_CMD is not set or does not exist."
+Assert-CommandAvailable "ddkbuild.cmd"
 
 if ([string]::IsNullOrWhiteSpace($env:WDK7_CMAKE_GENERATOR)) {
     throw "WDK7_CMAKE_GENERATOR is not set."

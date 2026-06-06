@@ -29172,6 +29172,7 @@ function publishWdk7(root, source, cacheHit, sdk) {
   exportVariable("WDK7_DDKBUILD_CMD", ddkbuildCmd());
   exportVariable("WDK7_CMAKE_GENERATOR", cmakeGenerator);
   addPath(host);
+  addPath(actionRoot());
   setOutput("found", "true");
   setOutput("root", resolvedRoot);
   setOutput("source", source);
