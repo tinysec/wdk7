@@ -11,12 +11,24 @@ inputs:
   download:
     description: Download and extract WDK7 when it cannot be found locally.
     default: "true"
+  download-retries:
+    description: Number of download attempts before giving up.
+    default: "3"
   download-url:
     description: WDK7 ISO URL. Defaults to the official Microsoft WDK 7.1 ISO.
     default: "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
   sha256:
     description: Optional SHA-256 checksum for the ISO.
     default: ""
+  cache:
+    description: Restore and save WDK7 through the GitHub Actions cache service when available.
+    default: "true"
+  cache-key:
+    description: Primary actions/cache key for the WDK7 cache directory.
+    default: "wdk7-7600.16385.1"
+  restore-keys:
+    description: Newline-separated fallback actions/cache restore keys.
+    default: "wdk7-"
   cache-root:
     description: Directory used for the local WDK7 cache.
     default: ""
@@ -38,6 +50,12 @@ outputs:
     description: Resolution source: input, environment, cache, default, or download.
   cache-hit:
     description: true when an existing cached WDK7 tree was reused.
+  cache-key:
+    description: Primary actions/cache key used by this run.
+  toolchain-file:
+    description: Absolute path to the bundled CMake WDK7 toolchain file.
+  cmake-generator:
+    description: Recommended CMake generator for the WDK7 toolchain.
 
 runs:
   using: node24

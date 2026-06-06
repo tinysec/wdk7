@@ -2,14 +2,16 @@
   "name": "wdk7-action",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "GitHub Action to detect, download, cache, and expose Windows Driver Kit 7.1.",
   "main": "dist/index.js",
   "scripts": {
     "check": "tsc --noEmit",
-    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.js",
+    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=esm --outfile=dist/index.js --banner:js=\"import { createRequire as __tinysecCreateRequire } from 'node:module';const require = __tinysecCreateRequire(import.meta.url);\" && node scripts/trim-dist.cjs dist/index.js",
     "build": "npm run check && npm run package"
   },
   "dependencies": {
+    "@actions/cache": "^6.0.1",
     "@actions/core": "^3.0.1"
   },
   "devDependencies": {

@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import * as actionsCache from "@actions/cache";
 import { createHash } from "node:crypto";
 import { createWriteStream, existsSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from "node:fs";
 import { open } from "node:fs/promises";
@@ -10,6 +11,7 @@ import { spawn } from "node:child_process";
 
 const defaultDownloadUrl =
   "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO";
+const cmakeGenerator = "NMake Makefiles";
 
 type WdkArch = "amd64" | "i386";
 
@@ -22,8 +24,12 @@ interface Inputs {
   arch: WdkArch;
   root: string;
   download: boolean;
+  downloadRetries: number;
   downloadUrl: string;
   sha256: string;
+  cache: boolean;
+  cacheKey: string;
+  restoreKeys: string[];
   cacheRoot: string;
   installRoot: string;
   failOnError: boolean;
@@ -63,17 +69,54 @@ function normalizeArch(value: string): WdkArch {
   }
 }
 
+function parsePositiveInteger(value: string, fallback: number): number {
+  if (!value.trim()) {
+    return fallback;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    throw new Error(`Invalid positive integer value '${value}'.`);
+  }
+  return parsed;
+}
+
+function parseRestoreKeys(value: string): string[] {
+  return value
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+}
+
 function readInputs(): Inputs {
   return {
     arch: normalizeArch(core.getInput("arch") || "amd64"),
     root: core.getInput("root"),
     download: parseBool(core.getInput("download") || "true"),
+    downloadRetries: parsePositiveInteger(core.getInput("download-retries"), 3),
     downloadUrl: core.getInput("download-url") || defaultDownloadUrl,
     sha256: core.getInput("sha256"),
+    cache: parseBool(core.getInput("cache") || "true"),
+    cacheKey: core.getInput("cache-key") || "wdk7-7600.16385.1",
+    restoreKeys: parseRestoreKeys(core.getInput("restore-keys") || "wdk7-"),
     cacheRoot: core.getInput("cache-root"),
     installRoot: core.getInput("install-root"),
     failOnError: parseBool(core.getInput("fail-on-error") || "false")
   };
+}
+
+function actionRoot(): string {
+  return process.env.GITHUB_ACTION_PATH ?? process.cwd();
+}
+
+function toolchainFile(): string {
+  return path.join(actionRoot(), "cmake", "wdk7.cmake");
+}
+
+function publishStaticOutputs(cacheKey: string): void {
+  core.setOutput("cache-key", cacheKey);
+  core.setOutput("toolchain-file", toolchainFile());
+  core.setOutput("cmake-generator", cmakeGenerator);
 }
 
 function expandEnvironment(value: string): string {
@@ -139,17 +182,24 @@ function addCandidate(candidates: Candidate[], root: string | undefined, source:
   }
 }
 
-function findWdk7Root(arch: WdkArch, requestedRoot: string, cacheRoot: string): Candidate | undefined {
+function findWdk7Root(
+  arch: WdkArch,
+  requestedRoot: string,
+  cacheRoot: string,
+  includeCache: boolean
+): Candidate | undefined {
   const candidates: Candidate[] = [];
 
   addCandidate(candidates, requestedRoot, "input");
   addCandidate(candidates, process.env.WDK7_ROOT, "environment");
   addCandidate(candidates, process.env.W7BASE, "environment");
 
-  addCandidate(candidates, path.join(cacheRoot, "7600.16385.1"), "cache");
-  addCandidate(candidates, path.join(cacheRoot, "7600.16385.win7_wdk.100208-1538"), "cache");
-  addCandidate(candidates, path.join(cacheRoot, "wdk7", "7600.16385.1"), "cache");
-  addCandidate(candidates, path.join(cacheRoot, "wdk7", "7600.16385.win7_wdk.100208-1538"), "cache");
+  if (includeCache) {
+    addCandidate(candidates, path.join(cacheRoot, "7600.16385.1"), "cache");
+    addCandidate(candidates, path.join(cacheRoot, "7600.16385.win7_wdk.100208-1538"), "cache");
+    addCandidate(candidates, path.join(cacheRoot, "wdk7", "7600.16385.1"), "cache");
+    addCandidate(candidates, path.join(cacheRoot, "wdk7", "7600.16385.win7_wdk.100208-1538"), "cache");
+  }
 
   addCandidate(candidates, "C:\\WinDDK\\7600.16385.1", "default");
   addCandidate(candidates, "C:\\WinDDK\\7600.16385.win7_wdk.100208-1538", "default");
@@ -243,6 +293,10 @@ function runProcess(command: string, args: string[], options?: { cwd?: string; s
   });
 }
 
+function sleep(milliseconds: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
 async function downloadFile(urlText: string, outputPath: string, redirectCount = 0): Promise<void> {
   if (redirectCount > 8) {
     throw new Error(`Too many redirects while downloading '${urlText}'.`);
@@ -289,7 +343,39 @@ async function downloadFile(urlText: string, outputPath: string, redirectCount =
       rmSync(tmpPath, { force: true });
       reject(error);
     });
+
+    request.setTimeout(300000, () => {
+      request.destroy(new Error(`Download timed out after 300 seconds: ${urlText}`));
+    });
   });
+}
+
+async function downloadFileWithRetries(urlText: string, outputPath: string, attempts: number): Promise<void> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      await downloadFile(urlText, outputPath);
+      return;
+    } catch (error) {
+      lastError = error;
+      rmSync(outputPath, { force: true });
+
+      if (attempt >= attempts) {
+        break;
+      }
+
+      const delay = Math.min(30000, 2000 * attempt);
+      core.warning(
+        `WDK7 ISO download attempt ${attempt}/${attempts} failed: ${
+          error instanceof Error ? error.message : String(error)
+        }. Retrying in ${delay / 1000}s.`
+      );
+      await sleep(delay);
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
 async function assertSha256(filePath: string, expected: string): Promise<void> {
@@ -313,7 +399,7 @@ async function assertSha256(filePath: string, expected: string): Promise<void> {
 }
 
 async function mountIso(isoPath: string): Promise<string> {
-  const script = path.join(process.env.GITHUB_ACTION_PATH ?? process.cwd(), "scripts", "mount-iso.ps1");
+  const script = path.join(actionRoot(), "scripts", "mount-iso.ps1");
   const output = await runProcess("powershell.exe", [
     "-NoProfile",
     "-ExecutionPolicy",
@@ -332,7 +418,7 @@ async function mountIso(isoPath: string): Promise<string> {
 }
 
 async function dismountIso(isoPath: string): Promise<void> {
-  const script = path.join(process.env.GITHUB_ACTION_PATH ?? process.cwd(), "scripts", "dismount-iso.ps1");
+  const script = path.join(actionRoot(), "scripts", "dismount-iso.ps1");
   await runProcess("powershell.exe", [
     "-NoProfile",
     "-ExecutionPolicy",
@@ -385,7 +471,42 @@ async function installWdk7FromIso(isoPath: string, targetRoot: string): Promise<
   }
 }
 
-function publishWdk7(root: string, arch: WdkArch, source: string, cacheHit: boolean): void {
+async function restoreActionCache(cacheRoot: string, cacheKey: string, restoreKeys: string[]): Promise<string | undefined> {
+  if (!actionsCache.isFeatureAvailable()) {
+    core.info("Actions cache service is not available; using local disk cache only.");
+    return undefined;
+  }
+
+  try {
+    core.info(`Restoring WDK7 cache with key '${cacheKey}'.`);
+    const hit = await actionsCache.restoreCache([cacheRoot], cacheKey, restoreKeys);
+    if (hit) {
+      core.info(`Restored WDK7 cache from key '${hit}'.`);
+    } else {
+      core.info("No WDK7 actions/cache entry was restored.");
+    }
+    return hit;
+  } catch (error) {
+    core.warning(`WDK7 cache restore failed: ${error instanceof Error ? error.message : String(error)}`);
+    return undefined;
+  }
+}
+
+async function saveActionCache(cacheRoot: string, cacheKey: string): Promise<void> {
+  if (!actionsCache.isFeatureAvailable()) {
+    core.info("Actions cache service is not available; skipping WDK7 cache save.");
+    return;
+  }
+
+  try {
+    core.info(`Saving WDK7 cache with key '${cacheKey}'.`);
+    await actionsCache.saveCache([cacheRoot], cacheKey);
+  } catch (error) {
+    core.warning(`WDK7 cache save skipped: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+function publishWdk7(root: string, arch: WdkArch, source: string, cacheHit: boolean, cacheKey: string): void {
   const resolvedRoot = fullPath(root);
   const bin = targetBin(resolvedRoot, arch);
   const host = hostBin(resolvedRoot);
@@ -395,6 +516,8 @@ function publishWdk7(root: string, arch: WdkArch, source: string, cacheHit: bool
   core.exportVariable("WDK7_ARCH", arch);
   core.exportVariable("WDK7_BIN", bin);
   core.exportVariable("WDK7_HOST_BIN", host);
+  core.exportVariable("WDK7_CMAKE_TOOLCHAIN_FILE", toolchainFile());
+  core.exportVariable("WDK7_CMAKE_GENERATOR", cmakeGenerator);
 
   core.addPath(bin);
   core.addPath(host);
@@ -408,8 +531,9 @@ function publishWdk7(root: string, arch: WdkArch, source: string, cacheHit: bool
   core.info(`WDK7 ready: root='${resolvedRoot}' arch='${arch}' source='${source}'`);
 }
 
-function publishNotFound(arch: WdkArch, reason: string): void {
+function publishNotFound(arch: WdkArch, reason: string, cacheKey = "wdk7-7600.16385.1"): void {
   core.warning(reason);
+  publishStaticOutputs(cacheKey);
   core.setOutput("found", "false");
   core.setOutput("root", "");
   core.setOutput("arch", arch);
@@ -425,20 +549,40 @@ async function run(): Promise<void> {
   const inputs = readInputs();
   const cacheRoot = fullPath(inputs.cacheRoot) || defaultCacheRoot();
   mkdirSync(cacheRoot, { recursive: true });
+  publishStaticOutputs(inputs.cacheKey);
 
-  const found = findWdk7Root(inputs.arch, inputs.root, cacheRoot);
+  const installed = findWdk7Root(inputs.arch, inputs.root, cacheRoot, false);
+  if (installed) {
+    publishWdk7(installed.root, inputs.arch, installed.source, false, inputs.cacheKey);
+    return;
+  }
+
+  let restoredCacheKey: string | undefined;
+  if (inputs.cache) {
+    restoredCacheKey = await restoreActionCache(cacheRoot, inputs.cacheKey, inputs.restoreKeys);
+  } else {
+    core.info("WDK7 actions/cache integration is disabled.");
+  }
+
+  const found = findWdk7Root(inputs.arch, inputs.root, cacheRoot, true);
   if (found) {
-    publishWdk7(found.root, inputs.arch, found.source, found.source === "cache");
+    publishWdk7(
+      found.root,
+      inputs.arch,
+      found.source,
+      found.source === "cache" || Boolean(restoredCacheKey),
+      inputs.cacheKey
+    );
     return;
   }
 
   if (!inputs.download) {
-    publishNotFound(inputs.arch, "WDK7 was not found and download=false.");
+    publishNotFound(inputs.arch, "WDK7 was not found and download=false.", inputs.cacheKey);
     return;
   }
 
   if (!inputs.downloadUrl.trim()) {
-    publishNotFound(inputs.arch, "WDK7 was not found and no download URL was provided.");
+    publishNotFound(inputs.arch, "WDK7 was not found and no download URL was provided.", inputs.cacheKey);
     return;
   }
 
@@ -447,7 +591,7 @@ async function run(): Promise<void> {
     core.info(`Using cached WDK7 ISO: ${isoPath}`);
   } else {
     core.info(`Downloading WDK7 ISO from: ${inputs.downloadUrl}`);
-    await downloadFile(inputs.downloadUrl, isoPath);
+    await downloadFileWithRetries(inputs.downloadUrl, isoPath, inputs.downloadRetries);
   }
 
   await assertSha256(isoPath, inputs.sha256);
@@ -465,7 +609,11 @@ async function run(): Promise<void> {
     throw new Error("WDK7 extraction completed, but no valid WDK7 root was found.");
   }
 
-  publishWdk7(resolvedRoot, inputs.arch, "download", false);
+  if (inputs.cache && restoredCacheKey !== inputs.cacheKey) {
+    await saveActionCache(cacheRoot, inputs.cacheKey);
+  }
+
+  publishWdk7(resolvedRoot, inputs.arch, "download", false, inputs.cacheKey);
 }
 
 run().catch(error => {

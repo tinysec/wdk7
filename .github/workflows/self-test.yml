@@ -24,6 +24,7 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           download: "false"
+          cache: "false"
 
       - name: show outputs
         shell: powershell
@@ -33,3 +34,4 @@ jobs:
           "arch=${{ steps.wdk7.outputs.arch }}"
           "source=${{ steps.wdk7.outputs.source }}"
           "cache-hit=${{ steps.wdk7.outputs.cache-hit }}"
+          "toolchain-file=${{ steps.wdk7.outputs.toolchain-file }}"
