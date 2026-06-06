@@ -1074,14 +1074,14 @@ var require_util = __commonJS({
         }
         const port = url2.port != null ? url2.port : url2.protocol === "https:" ? 443 : 80;
         let origin = url2.origin != null ? url2.origin : `${url2.protocol || ""}//${url2.hostname || ""}:${port}`;
-        let path19 = url2.path != null ? url2.path : `${url2.pathname || ""}${url2.search || ""}`;
+        let path17 = url2.path != null ? url2.path : `${url2.pathname || ""}${url2.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path19 && path19[0] !== "/") {
-          path19 = `/${path19}`;
+        if (path17 && path17[0] !== "/") {
+          path17 = `/${path17}`;
         }
-        return new URL(`${origin}${path19}`);
+        return new URL(`${origin}${path17}`);
       }
       if (!isHttpOrHttpsPrefixed(url2.origin || url2.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -1532,39 +1532,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method, path: path19, origin }
+          request: { method, path: path17, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method, origin, path19);
+        debuglog("sending request to %s %s/%s", method, origin, path17);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method, path: path19, origin },
+          request: { method, path: path17, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method,
           origin,
-          path19,
+          path17,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method, path: path19, origin }
+          request: { method, path: path17, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method, origin, path19);
+        debuglog("trailers received from %s %s/%s", method, origin, path17);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method, path: path19, origin },
+          request: { method, path: path17, origin },
           error: error2
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method,
           origin,
-          path19,
+          path17,
           error2.message
         );
       });
@@ -1613,9 +1613,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method, path: path19, origin }
+            request: { method, path: path17, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method, origin, path19);
+          debuglog("sending request to %s %s/%s", method, origin, path17);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -1678,7 +1678,7 @@ var require_request = __commonJS({
     var kHandler = /* @__PURE__ */ Symbol("handler");
     var Request = class {
       constructor(origin, {
-        path: path19,
+        path: path17,
         method,
         body: body2,
         headers,
@@ -1693,11 +1693,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler) {
-        if (typeof path19 !== "string") {
+        if (typeof path17 !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path19[0] !== "/" && !(path19.startsWith("http://") || path19.startsWith("https://")) && method !== "CONNECT") {
+        } else if (path17[0] !== "/" && !(path17.startsWith("http://") || path17.startsWith("https://")) && method !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path19)) {
+        } else if (invalidPathRegex.test(path17)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method !== "string") {
@@ -1763,7 +1763,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path19, query) : path19;
+        this.path = query ? buildURL(path17, query) : path17;
         this.origin = origin;
         this.idempotent = idempotent == null ? method === "HEAD" || method === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -2088,9 +2088,9 @@ var require_dispatcher_base = __commonJS({
       }
       close(callback) {
         if (callback === void 0) {
-          return new Promise((resolve3, reject) => {
+          return new Promise((resolve4, reject) => {
             this.close((err, data) => {
-              return err ? reject(err) : resolve3(data);
+              return err ? reject(err) : resolve4(data);
             });
           });
         }
@@ -2128,12 +2128,12 @@ var require_dispatcher_base = __commonJS({
           err = null;
         }
         if (callback === void 0) {
-          return new Promise((resolve3, reject) => {
+          return new Promise((resolve4, reject) => {
             this.destroy(err, (err2, data) => {
               return err2 ? (
                 /* istanbul ignore next: should never error */
                 reject(err2)
-              ) : resolve3(data);
+              ) : resolve4(data);
             });
           });
         }
@@ -4400,8 +4400,8 @@ var require_util2 = __commonJS({
     function createDeferredPromise() {
       let res;
       let rej;
-      const promise = new Promise((resolve3, reject) => {
-        res = resolve3;
+      const promise = new Promise((resolve4, reject) => {
+        res = resolve4;
         rej = reject;
       });
       return { promise, resolve: res, reject: rej };
@@ -6327,7 +6327,7 @@ var require_client_h1 = __commonJS({
       return method !== "GET" && method !== "HEAD" && method !== "OPTIONS" && method !== "TRACE" && method !== "CONNECT";
     }
     function writeH1(client, request) {
-      const { method, path: path19, host, upgrade, blocking, reset } = request;
+      const { method, path: path17, host, upgrade, blocking, reset } = request;
       let { body: body2, headers, contentLength: contentLength2 } = request;
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH" || method === "QUERY" || method === "PROPFIND" || method === "PROPPATCH";
       if (util5.isFormDataLike(body2)) {
@@ -6393,7 +6393,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method} ${path19} HTTP/1.1\r
+      let header = `${method} ${path17} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -6580,12 +6580,12 @@ upgrade: ${upgrade}\r
           cb();
         }
       }
-      const waitForDrain = () => new Promise((resolve3, reject) => {
+      const waitForDrain = () => new Promise((resolve4, reject) => {
         assert4(callback === null);
         if (socket[kError]) {
           reject(socket[kError]);
         } else {
-          callback = resolve3;
+          callback = resolve4;
         }
       });
       socket.on("close", onDrain).on("drain", onDrain);
@@ -6919,7 +6919,7 @@ var require_client_h2 = __commonJS({
     }
     function writeH2(client, request) {
       const session = client[kHTTP2Session];
-      const { method, path: path19, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
+      const { method, path: path17, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
       let { body: body2 } = request;
       if (upgrade) {
         util5.errorRequest(client, request, new Error("Upgrade not supported for H2"));
@@ -6986,7 +6986,7 @@ var require_client_h2 = __commonJS({
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path19;
+      headers[HTTP2_HEADER_PATH] = path17;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH";
       if (body2 && typeof body2.read === "function") {
@@ -7222,12 +7222,12 @@ var require_client_h2 = __commonJS({
           cb();
         }
       }
-      const waitForDrain = () => new Promise((resolve3, reject) => {
+      const waitForDrain = () => new Promise((resolve4, reject) => {
         assert4(callback === null);
         if (socket[kError]) {
           reject(socket[kError]);
         } else {
-          callback = resolve3;
+          callback = resolve4;
         }
       });
       h2stream.on("close", onDrain).on("drain", onDrain);
@@ -7339,9 +7339,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util5.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path19 = search ? `${pathname}${search}` : pathname;
+        const path17 = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path19;
+        this.opts.path = path17;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -7705,16 +7705,16 @@ var require_client = __commonJS({
         return this[kNeedDrain] < 2;
       }
       async [kClose]() {
-        return new Promise((resolve3) => {
+        return new Promise((resolve4) => {
           if (this[kSize]) {
-            this[kClosedResolve] = resolve3;
+            this[kClosedResolve] = resolve4;
           } else {
-            resolve3(null);
+            resolve4(null);
           }
         });
       }
       async [kDestroy](err) {
-        return new Promise((resolve3) => {
+        return new Promise((resolve4) => {
           const requests = this[kQueue].splice(this[kPendingIdx]);
           for (let i = 0; i < requests.length; i++) {
             const request = requests[i];
@@ -7725,7 +7725,7 @@ var require_client = __commonJS({
               this[kClosedResolve]();
               this[kClosedResolve] = null;
             }
-            resolve3(null);
+            resolve4(null);
           };
           if (this[kHTTPContext]) {
             this[kHTTPContext].destroy(err, callback);
@@ -7776,7 +7776,7 @@ var require_client = __commonJS({
         });
       }
       try {
-        const socket = await new Promise((resolve3, reject) => {
+        const socket = await new Promise((resolve4, reject) => {
           client[kConnector]({
             host,
             hostname,
@@ -7788,7 +7788,7 @@ var require_client = __commonJS({
             if (err) {
               reject(err);
             } else {
-              resolve3(socket2);
+              resolve4(socket2);
             }
           });
         });
@@ -8124,8 +8124,8 @@ var require_pool_base = __commonJS({
         if (this[kQueue].isEmpty()) {
           await Promise.all(this[kClients].map((c) => c.close()));
         } else {
-          await new Promise((resolve3) => {
-            this[kClosedResolve] = resolve3;
+          await new Promise((resolve4) => {
+            this[kClosedResolve] = resolve4;
           });
         }
       }
@@ -8576,10 +8576,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path: path19 = "/",
+          path: path17 = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path19;
+        opts.path = origin + path17;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL3(origin);
           headers.host = host;
@@ -9340,7 +9340,7 @@ var require_readable = __commonJS({
         if (this._readableState.closeEmitted) {
           return null;
         }
-        return await new Promise((resolve3, reject) => {
+        return await new Promise((resolve4, reject) => {
           if (this[kContentLength] > limit) {
             this.destroy(new AbortError3());
           }
@@ -9353,7 +9353,7 @@ var require_readable = __commonJS({
             if (signal?.aborted) {
               reject(signal.reason ?? new AbortError3());
             } else {
-              resolve3(null);
+              resolve4(null);
             }
           }).on("error", noop).on("data", function(chunk) {
             limit -= chunk.length;
@@ -9372,7 +9372,7 @@ var require_readable = __commonJS({
     }
     async function consume(stream2, type) {
       assert4(!stream2[kConsume]);
-      return new Promise((resolve3, reject) => {
+      return new Promise((resolve4, reject) => {
         if (isUnusable(stream2)) {
           const rState = stream2._readableState;
           if (rState.destroyed && rState.closeEmitted === false) {
@@ -9389,7 +9389,7 @@ var require_readable = __commonJS({
             stream2[kConsume] = {
               type,
               stream: stream2,
-              resolve: resolve3,
+              resolve: resolve4,
               reject,
               length: 0,
               body: []
@@ -9459,18 +9459,18 @@ var require_readable = __commonJS({
       return buffer3;
     }
     function consumeEnd(consume2) {
-      const { type, body: body2, resolve: resolve3, stream: stream2, length } = consume2;
+      const { type, body: body2, resolve: resolve4, stream: stream2, length } = consume2;
       try {
         if (type === "text") {
-          resolve3(chunksDecode(body2, length));
+          resolve4(chunksDecode(body2, length));
         } else if (type === "json") {
-          resolve3(JSON.parse(chunksDecode(body2, length)));
+          resolve4(JSON.parse(chunksDecode(body2, length)));
         } else if (type === "arrayBuffer") {
-          resolve3(chunksConcat(body2, length).buffer);
+          resolve4(chunksConcat(body2, length).buffer);
         } else if (type === "blob") {
-          resolve3(new Blob(body2, { type: stream2[kContentType] }));
+          resolve4(new Blob(body2, { type: stream2[kContentType] }));
         } else if (type === "bytes") {
-          resolve3(chunksConcat(body2, length));
+          resolve4(chunksConcat(body2, length));
         }
         consumeFinish(consume2);
       } catch (err) {
@@ -9727,9 +9727,9 @@ var require_api_request = __commonJS({
     };
     function request(opts, callback) {
       if (callback === void 0) {
-        return new Promise((resolve3, reject) => {
+        return new Promise((resolve4, reject) => {
           request.call(this, opts, (err, data) => {
-            return err ? reject(err) : resolve3(data);
+            return err ? reject(err) : resolve4(data);
           });
         });
       }
@@ -9952,9 +9952,9 @@ var require_api_stream = __commonJS({
     };
     function stream2(opts, factory, callback) {
       if (callback === void 0) {
-        return new Promise((resolve3, reject) => {
+        return new Promise((resolve4, reject) => {
           stream2.call(this, opts, factory, (err, data) => {
-            return err ? reject(err) : resolve3(data);
+            return err ? reject(err) : resolve4(data);
           });
         });
       }
@@ -10239,9 +10239,9 @@ var require_api_upgrade = __commonJS({
     };
     function upgrade(opts, callback) {
       if (callback === void 0) {
-        return new Promise((resolve3, reject) => {
+        return new Promise((resolve4, reject) => {
           upgrade.call(this, opts, (err, data) => {
-            return err ? reject(err) : resolve3(data);
+            return err ? reject(err) : resolve4(data);
           });
         });
       }
@@ -10333,9 +10333,9 @@ var require_api_connect = __commonJS({
     };
     function connect(opts, callback) {
       if (callback === void 0) {
-        return new Promise((resolve3, reject) => {
+        return new Promise((resolve4, reject) => {
           connect.call(this, opts, (err, data) => {
-            return err ? reject(err) : resolve3(data);
+            return err ? reject(err) : resolve4(data);
           });
         });
       }
@@ -10500,20 +10500,20 @@ var require_mock_utils = __commonJS({
       }
       return true;
     }
-    function safeUrl(path19) {
-      if (typeof path19 !== "string") {
-        return path19;
+    function safeUrl(path17) {
+      if (typeof path17 !== "string") {
+        return path17;
       }
-      const pathSegments = path19.split("?");
+      const pathSegments = path17.split("?");
       if (pathSegments.length !== 2) {
-        return path19;
+        return path17;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
-    function matchKey(mockDispatch2, { path: path19, method, body: body2, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path19);
+    function matchKey(mockDispatch2, { path: path17, method, body: body2, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path17);
       const methodMatch = matchValue(mockDispatch2.method, method);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body2) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -10535,7 +10535,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path19 }) => matchValue(safeUrl(path19), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path17 }) => matchValue(safeUrl(path17), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -10573,9 +10573,9 @@ var require_mock_utils = __commonJS({
       }
     }
     function buildKey(opts) {
-      const { path: path19, method, body: body2, headers, query } = opts;
+      const { path: path17, method, body: body2, headers, query } = opts;
       return {
-        path: path19,
+        path: path17,
         method,
         body: body2,
         headers,
@@ -11038,10 +11038,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method, path: path19, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method, path: path17, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method,
             Origin: origin,
-            Path: path19,
+            Path: path17,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -14197,7 +14197,7 @@ var require_fetch = __commonJS({
       function dispatch({ body: body2 }) {
         const url2 = requestCurrentURL(request);
         const agent = fetchParams.controller.dispatcher;
-        return new Promise((resolve3, reject) => agent.dispatch(
+        return new Promise((resolve4, reject) => agent.dispatch(
           {
             path: url2.pathname + url2.search,
             origin: url2.origin,
@@ -14273,7 +14273,7 @@ var require_fetch = __commonJS({
                 }
               }
               const onError = this.onError.bind(this);
-              resolve3({
+              resolve4({
                 status,
                 statusText,
                 headersList,
@@ -14319,7 +14319,7 @@ var require_fetch = __commonJS({
               for (let i = 0; i < rawHeaders.length; i += 2) {
                 headersList.append(bufferToLowerCasedHeaderName(rawHeaders[i]), rawHeaders[i + 1].toString("latin1"), true);
               }
-              resolve3({
+              resolve4({
                 status,
                 statusText: STATUS_CODES[status],
                 headersList,
@@ -15922,9 +15922,9 @@ var require_util6 = __commonJS({
         }
       }
     }
-    function validateCookiePath(path19) {
-      for (let i = 0; i < path19.length; ++i) {
-        const code = path19.charCodeAt(i);
+    function validateCookiePath(path17) {
+      for (let i = 0; i < path17.length; ++i) {
+        const code = path17.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code === 127 || // DEL
         code === 59) {
@@ -17995,8 +17995,8 @@ var require_util8 = __commonJS({
       return true;
     }
     function delay4(ms) {
-      return new Promise((resolve3) => {
-        setTimeout(resolve3, ms).unref();
+      return new Promise((resolve4) => {
+        setTimeout(resolve4, ms).unref();
       });
     }
     module.exports = {
@@ -18601,11 +18601,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path19 = opts.path;
+          let path17 = opts.path;
           if (!opts.path.startsWith("/")) {
-            path19 = `/${path19}`;
+            path17 = `/${path17}`;
           }
-          url2 = new URL(util5.parseOrigin(url2).origin + path19);
+          url2 = new URL(util5.parseOrigin(url2).origin + path17);
         } else {
           if (!opts) {
             opts = typeof url2 === "object" ? url2 : {};
@@ -18903,7 +18903,7 @@ var require_minimatch = __commonJS({
   "node_modules/minimatch/minimatch.js"(exports2, module) {
     module.exports = minimatch2;
     minimatch2.Minimatch = Minimatch2;
-    var path19 = (function() {
+    var path17 = (function() {
       try {
         return __require("path");
       } catch (e) {
@@ -18911,7 +18911,7 @@ var require_minimatch = __commonJS({
     })() || {
       sep: "/"
     };
-    minimatch2.sep = path19.sep;
+    minimatch2.sep = path17.sep;
     var GLOBSTAR = minimatch2.GLOBSTAR = Minimatch2.GLOBSTAR = {};
     var expand = require_brace_expansion();
     var plTypes = {
@@ -19000,8 +19000,8 @@ var require_minimatch = __commonJS({
       assertValidPattern(pattern);
       if (!options) options = {};
       pattern = pattern.trim();
-      if (!options.allowWindowsEscape && path19.sep !== "/") {
-        pattern = pattern.split(path19.sep).join("/");
+      if (!options.allowWindowsEscape && path17.sep !== "/") {
+        pattern = pattern.split(path17.sep).join("/");
       }
       this.options = options;
       this.maxGlobstarRecursion = options.maxGlobstarRecursion !== void 0 ? options.maxGlobstarRecursion : 200;
@@ -19372,8 +19372,8 @@ var require_minimatch = __commonJS({
       if (this.empty) return f === "";
       if (f === "/" && partial) return true;
       var options = this.options;
-      if (path19.sep !== "/") {
-        f = f.split(path19.sep).join("/");
+      if (path17.sep !== "/") {
+        f = f.split(path17.sep).join("/");
       }
       f = f.split(slashSplit);
       this.debug(this.pattern, "split", f);
@@ -22267,8 +22267,8 @@ var require_helpers = __commonJS({
     function req(url2, opts = {}) {
       const href = typeof url2 === "string" ? url2 : url2.href;
       const req2 = (href.startsWith("https:") ? https4 : http4).request(url2, opts);
-      const promise = new Promise((resolve3, reject) => {
-        req2.once("response", resolve3).once("error", reject).end();
+      const promise = new Promise((resolve4, reject) => {
+        req2.once("response", resolve4).once("error", reject).end();
       });
       req2.then = promise.then.bind(promise);
       return req2;
@@ -22445,7 +22445,7 @@ var require_parse_proxy_response = __commonJS({
     var debug_1 = __importDefault(require_src());
     var debug2 = (0, debug_1.default)("https-proxy-agent:parse-proxy-response");
     function parseProxyResponse(socket) {
-      return new Promise((resolve3, reject) => {
+      return new Promise((resolve4, reject) => {
         let buffersLength = 0;
         const buffers = [];
         function read2() {
@@ -22511,7 +22511,7 @@ var require_parse_proxy_response = __commonJS({
           }
           debug2("got proxy server response: %o %o", firstLine, headers);
           cleanup();
-          resolve3({
+          resolve4({
             connect: {
               statusCode,
               statusText,
@@ -26171,8 +26171,8 @@ var require_deferred = __commonJS({
        */
       constructor(preventUnhandledRejectionWarning = true) {
         this._state = DeferredState.PENDING;
-        this._promise = new Promise((resolve3, reject) => {
-          this._resolve = resolve3;
+        this._promise = new Promise((resolve4, reject) => {
+          this._resolve = resolve4;
           this._reject = reject;
         });
         if (preventUnhandledRejectionWarning) {
@@ -26387,11 +26387,11 @@ var require_unary_call = __commonJS({
     "use strict";
     var __awaiter18 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve3) {
-          resolve3(value);
+        return value instanceof P ? value : new P(function(resolve4) {
+          resolve4(value);
         });
       }
-      return new (P || (P = Promise))(function(resolve3, reject) {
+      return new (P || (P = Promise))(function(resolve4, reject) {
         function fulfilled(value) {
           try {
             step(generator.next(value));
@@ -26407,7 +26407,7 @@ var require_unary_call = __commonJS({
           }
         }
         function step(result) {
-          result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+          result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
         }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
@@ -26456,11 +26456,11 @@ var require_server_streaming_call = __commonJS({
     "use strict";
     var __awaiter18 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve3) {
-          resolve3(value);
+        return value instanceof P ? value : new P(function(resolve4) {
+          resolve4(value);
         });
       }
-      return new (P || (P = Promise))(function(resolve3, reject) {
+      return new (P || (P = Promise))(function(resolve4, reject) {
         function fulfilled(value) {
           try {
             step(generator.next(value));
@@ -26476,7 +26476,7 @@ var require_server_streaming_call = __commonJS({
           }
         }
         function step(result) {
-          result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+          result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
         }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
@@ -26526,11 +26526,11 @@ var require_client_streaming_call = __commonJS({
     "use strict";
     var __awaiter18 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve3) {
-          resolve3(value);
+        return value instanceof P ? value : new P(function(resolve4) {
+          resolve4(value);
         });
       }
-      return new (P || (P = Promise))(function(resolve3, reject) {
+      return new (P || (P = Promise))(function(resolve4, reject) {
         function fulfilled(value) {
           try {
             step(generator.next(value));
@@ -26546,7 +26546,7 @@ var require_client_streaming_call = __commonJS({
           }
         }
         function step(result) {
-          result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+          result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
         }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
@@ -26595,11 +26595,11 @@ var require_duplex_streaming_call = __commonJS({
     "use strict";
     var __awaiter18 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve3) {
-          resolve3(value);
+        return value instanceof P ? value : new P(function(resolve4) {
+          resolve4(value);
         });
       }
-      return new (P || (P = Promise))(function(resolve3, reject) {
+      return new (P || (P = Promise))(function(resolve4, reject) {
         function fulfilled(value) {
           try {
             step(generator.next(value));
@@ -26615,7 +26615,7 @@ var require_duplex_streaming_call = __commonJS({
           }
         }
         function step(result) {
-          result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+          result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
         }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
@@ -26663,11 +26663,11 @@ var require_test_transport = __commonJS({
     "use strict";
     var __awaiter18 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve3) {
-          resolve3(value);
+        return value instanceof P ? value : new P(function(resolve4) {
+          resolve4(value);
         });
       }
-      return new (P || (P = Promise))(function(resolve3, reject) {
+      return new (P || (P = Promise))(function(resolve4, reject) {
         function fulfilled(value) {
           try {
             step(generator.next(value));
@@ -26683,7 +26683,7 @@ var require_test_transport = __commonJS({
           }
         }
         function step(result) {
-          result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+          result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
         }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
@@ -26880,11 +26880,11 @@ var require_test_transport = __commonJS({
       responseTrailer: "test"
     };
     function delay4(ms, abort) {
-      return (v) => new Promise((resolve3, reject) => {
+      return (v) => new Promise((resolve4, reject) => {
         if (abort === null || abort === void 0 ? void 0 : abort.aborted) {
           reject(new rpc_error_1.RpcError("user cancel", "CANCELLED"));
         } else {
-          const id = setTimeout(() => resolve3(v), ms);
+          const id = setTimeout(() => resolve4(v), ms);
           if (abort) {
             abort.addEventListener("abort", (ev) => {
               clearTimeout(id);
@@ -27140,8 +27140,8 @@ var require_commonjs2 = __commonJS({
 });
 
 // src/main.ts
-import { mkdirSync as mkdirSync4 } from "node:fs";
-import * as path18 from "node:path";
+import { mkdirSync as mkdirSync3 } from "node:fs";
+import * as path16 from "node:path";
 
 // node_modules/@actions/core/lib/command.js
 import * as os from "os";
@@ -27328,11 +27328,11 @@ var tunnel = __toESM(require_tunnel2(), 1);
 var import_undici = __toESM(require_undici(), 1);
 var __awaiter = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -27348,7 +27348,7 @@ var __awaiter = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -27421,26 +27421,26 @@ var HttpClientResponse = class {
   }
   readBody() {
     return __awaiter(this, void 0, void 0, function* () {
-      return new Promise((resolve3) => __awaiter(this, void 0, void 0, function* () {
+      return new Promise((resolve4) => __awaiter(this, void 0, void 0, function* () {
         let output = Buffer.alloc(0);
         this.message.on("data", (chunk) => {
           output = Buffer.concat([output, chunk]);
         });
         this.message.on("end", () => {
-          resolve3(output.toString());
+          resolve4(output.toString());
         });
       }));
     });
   }
   readBodyBuffer() {
     return __awaiter(this, void 0, void 0, function* () {
-      return new Promise((resolve3) => __awaiter(this, void 0, void 0, function* () {
+      return new Promise((resolve4) => __awaiter(this, void 0, void 0, function* () {
         const chunks = [];
         this.message.on("data", (chunk) => {
           chunks.push(chunk);
         });
         this.message.on("end", () => {
-          resolve3(Buffer.concat(chunks));
+          resolve4(Buffer.concat(chunks));
         });
       }));
     });
@@ -27643,14 +27643,14 @@ var HttpClient = class {
    */
   requestRaw(info2, data) {
     return __awaiter(this, void 0, void 0, function* () {
-      return new Promise((resolve3, reject) => {
+      return new Promise((resolve4, reject) => {
         function callbackForResult(err, res) {
           if (err) {
             reject(err);
           } else if (!res) {
             reject(new Error("Unknown error"));
           } else {
-            resolve3(res);
+            resolve4(res);
           }
         }
         this.requestRawWithCallback(info2, data, callbackForResult);
@@ -27894,12 +27894,12 @@ var HttpClient = class {
     return __awaiter(this, void 0, void 0, function* () {
       retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
       const ms = ExponentialBackoffTimeSlice * Math.pow(2, retryNumber);
-      return new Promise((resolve3) => setTimeout(() => resolve3(), ms));
+      return new Promise((resolve4) => setTimeout(() => resolve4(), ms));
     });
   }
   _processResponse(res, options) {
     return __awaiter(this, void 0, void 0, function* () {
-      return new Promise((resolve3, reject) => __awaiter(this, void 0, void 0, function* () {
+      return new Promise((resolve4, reject) => __awaiter(this, void 0, void 0, function* () {
         const statusCode = res.message.statusCode || 0;
         const response = {
           statusCode,
@@ -27907,7 +27907,7 @@ var HttpClient = class {
           headers: {}
         };
         if (statusCode === HttpCodes.NotFound) {
-          resolve3(response);
+          resolve4(response);
         }
         function dateTimeDeserializer(key, value) {
           if (typeof value === "string") {
@@ -27946,7 +27946,7 @@ var HttpClient = class {
           err.result = response.result;
           reject(err);
         } else {
-          resolve3(response);
+          resolve4(response);
         }
       }));
     });
@@ -27957,11 +27957,11 @@ var lowercaseKeys = (obj) => Object.keys(obj).reduce((c, k) => (c[k.toLowerCase(
 // node_modules/@actions/http-client/lib/auth.js
 var __awaiter2 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -27977,7 +27977,7 @@ var __awaiter2 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -28010,11 +28010,11 @@ import { EOL as EOL3 } from "os";
 import { constants, promises } from "fs";
 var __awaiter3 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -28030,7 +28030,7 @@ var __awaiter3 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -28307,11 +28307,11 @@ import * as fs2 from "fs";
 import * as path from "path";
 var __awaiter4 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -28327,7 +28327,7 @@ var __awaiter4 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -28431,11 +28431,11 @@ function isUnixExecutable(stats) {
 // node_modules/@actions/io/lib/io.js
 var __awaiter5 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -28451,7 +28451,7 @@ var __awaiter5 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -28531,11 +28531,11 @@ function findInPath(tool) {
 import { setTimeout as setTimeout2 } from "timers";
 var __awaiter6 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -28551,7 +28551,7 @@ var __awaiter6 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -28770,7 +28770,7 @@ var ToolRunner = class extends events.EventEmitter {
         this.toolPath = path3.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
       }
       this.toolPath = yield which(this.toolPath, true);
-      return new Promise((resolve3, reject) => __awaiter6(this, void 0, void 0, function* () {
+      return new Promise((resolve4, reject) => __awaiter6(this, void 0, void 0, function* () {
         this._debug(`exec tool: ${this.toolPath}`);
         this._debug("arguments:");
         for (const arg of this.args) {
@@ -28853,7 +28853,7 @@ var ToolRunner = class extends events.EventEmitter {
           if (error2) {
             reject(error2);
           } else {
-            resolve3(exitCode);
+            resolve4(exitCode);
           }
         });
         if (this.options.input) {
@@ -28976,11 +28976,11 @@ var ExecState = class _ExecState extends events.EventEmitter {
 // node_modules/@actions/exec/lib/exec.js
 var __awaiter7 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -28996,7 +28996,7 @@ var __awaiter7 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -29079,8 +29079,190 @@ function info(message) {
   process.stdout.write(message + os5.EOL);
 }
 
+// src/action.ts
+import * as os6 from "node:os";
+import * as path5 from "node:path";
+import { fileURLToPath } from "node:url";
+var defaultDownloadUrls = [
+  "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
+];
+var cmakeGenerator = "NMake Makefiles";
+var wdkOnlyCacheKey = "wdk-7600.16385.1";
+var debuggerCacheKey = "wdk-7600.16385.1-debugger";
+function readInputs() {
+  const configuredDownloadUrls = splitDownloadUrls(getInput("download-url"));
+  const downloadUrls = uniqueStrings(configuredDownloadUrls.concat(defaultDownloadUrls));
+  const root = getInput("root");
+  const debuggerEnabled = readBooleanInput("debugger", false);
+  return {
+    root,
+    downloadUrls,
+    debugger: debuggerEnabled
+  };
+}
+function cacheKeyForDebugger(debuggerEnabled) {
+  if (true === debuggerEnabled) {
+    return debuggerCacheKey;
+  }
+  return wdkOnlyCacheKey;
+}
+function restoreKeysForDebugger(debuggerEnabled) {
+  if (true === debuggerEnabled) {
+    return [wdkOnlyCacheKey];
+  }
+  return [];
+}
+function actionRoot() {
+  const bundledEntry = fileURLToPath(import.meta.url);
+  const distDirectory = path5.dirname(bundledEntry);
+  return path5.dirname(distDirectory);
+}
+function cmakeModuleDir() {
+  return path5.join(actionRoot(), "cmake");
+}
+function toolchainFile() {
+  return path5.join(cmakeModuleDir(), "wdk7.cmake");
+}
+function ddkbuildCmd() {
+  return path5.join(actionRoot(), "ddkbuild.cmd");
+}
+function expandEnvironment(value) {
+  return value.replace(/%([^%]+)%/g, replaceEnvironmentToken);
+}
+function fullPath(value) {
+  if ("" === value.trim()) {
+    return "";
+  }
+  return path5.resolve(expandEnvironment(value));
+}
+function targetBins(root) {
+  return [
+    path5.join(root, "bin", "x86", "x86"),
+    path5.join(root, "bin", "x86", "amd64")
+  ];
+}
+function hostBin(root) {
+  return path5.join(root, "bin", "x86");
+}
+function defaultCacheRoot() {
+  const runnerToolCache = process.env.RUNNER_TOOL_CACHE;
+  const localAppData = process.env.LOCALAPPDATA;
+  if (void 0 !== runnerToolCache && "" !== runnerToolCache) {
+    return path5.join(runnerToolCache, "wdk7");
+  }
+  if (void 0 !== localAppData && "" !== localAppData) {
+    return path5.join(localAppData, "actions-tool-cache", "wdk7");
+  }
+  return path5.join(os6.tmpdir(), "actions-tool-cache", "wdk7");
+}
+function publishStaticOutputs() {
+  setOutput("cmake-module-dir", cmakeModuleDir());
+  setOutput("toolchain-file", toolchainFile());
+  setOutput("ddkbuild-cmd", ddkbuildCmd());
+  setOutput("cmake-generator", cmakeGenerator);
+}
+function publishWdk7(root, source, cacheHit, sdk) {
+  const resolvedRoot = fullPath(root);
+  const host = hostBin(resolvedRoot);
+  exportVariable("WDK7_ROOT", resolvedRoot);
+  exportVariable("W7BASE", resolvedRoot);
+  exportVariable("WDK7_HOST_BIN", host);
+  exportVariable("WDK7_CMAKE_MODULE_DIR", cmakeModuleDir());
+  exportVariable("WDK7_CMAKE_TOOLCHAIN_FILE", toolchainFile());
+  exportVariable("WDK7_DDKBUILD_CMD", ddkbuildCmd());
+  exportVariable("WDK7_CMAKE_GENERATOR", cmakeGenerator);
+  addPath(host);
+  setOutput("found", "true");
+  setOutput("root", resolvedRoot);
+  setOutput("source", source);
+  setOutput("cache-hit", true === cacheHit ? "true" : "false");
+  publishDebuggersSdk(sdk);
+  info(`WDK7 ready: root='${resolvedRoot}' source='${source}'`);
+}
+function publishNotFound(reason) {
+  info(reason);
+  publishStaticOutputs();
+  setOutput("found", "false");
+  setOutput("root", "");
+  setOutput("source", "none");
+  setOutput("cache-hit", "false");
+  publishDebuggersSdk(void 0);
+}
+function uniqueStrings(values) {
+  const seen = /* @__PURE__ */ new Set();
+  const result = [];
+  for (const value of values) {
+    const key = value.toLowerCase();
+    if (false === seen.has(key)) {
+      seen.add(key);
+      result.push(value);
+    }
+  }
+  return result;
+}
+function splitDownloadUrls(value) {
+  const result = [];
+  const parts = value.split(/[\r\n,;]+/);
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if ("" !== trimmed) {
+      result.push(trimmed);
+    }
+  }
+  return result;
+}
+function readBooleanInput(name, defaultValue) {
+  const rawValue = getInput(name);
+  const value = rawValue.trim().toLowerCase();
+  if ("" === value) {
+    return defaultValue;
+  }
+  if ("true" === value) {
+    return true;
+  }
+  if ("false" === value) {
+    return false;
+  }
+  throw new Error(`Input '${name}' must be true or false.`);
+}
+function replaceEnvironmentToken(_match, name) {
+  const replacement = process.env[name];
+  if (void 0 === replacement) {
+    return "";
+  }
+  return replacement;
+}
+function publishDebuggersSdk(sdk) {
+  if (void 0 === sdk) {
+    setOutput("dbgeng-found", "false");
+    setOutput("debuggers-root", "");
+    setOutput("dbgeng-include-dir", "");
+    setOutput("dbgeng-lib-i386", "");
+    setOutput("dbgeng-lib-amd64", "");
+    setOutput("debuggers-bin-x86", "");
+    setOutput("debuggers-bin-x64", "");
+    return;
+  }
+  exportVariable("WDK7_DEBUGGERS_ROOT", sdk.root);
+  exportVariable("WDK7_DBGENG_INCLUDE_DIR", sdk.includeDir);
+  exportVariable("WDK7_DBGENG_LIB_I386", sdk.libI386);
+  exportVariable("WDK7_DBGENG_LIB_AMD64", sdk.libAmd64);
+  exportVariable("WDK7_DEBUGGERS_BIN_X86", sdk.binX86);
+  exportVariable("WDK7_DEBUGGERS_BIN_X64", sdk.binX64);
+  setOutput("dbgeng-found", "true");
+  setOutput("debuggers-root", sdk.root);
+  setOutput("dbgeng-include-dir", sdk.includeDir);
+  setOutput("dbgeng-lib-i386", sdk.libI386);
+  setOutput("dbgeng-lib-amd64", sdk.libAmd64);
+  setOutput("debuggers-bin-x86", sdk.binX86);
+  setOutput("debuggers-bin-x64", sdk.binX64);
+  info(
+    `WDK7 Debuggers SDK ready: root='${sdk.root}' include='${sdk.includeDir}' lib-i386='${sdk.libI386}' lib-amd64='${sdk.libAmd64}'`
+  );
+}
+
 // node_modules/@actions/cache/lib/cache.js
-import * as path11 from "path";
+import * as path12 from "path";
 
 // node_modules/@actions/glob/lib/internal-globber.js
 import * as fs3 from "fs";
@@ -29120,18 +29302,18 @@ function getOptions(copy) {
 }
 
 // node_modules/@actions/glob/lib/internal-globber.js
-import * as path8 from "path";
+import * as path9 from "path";
 
 // node_modules/@actions/glob/lib/internal-path-helper.js
-import * as path5 from "path";
+import * as path6 from "path";
 import assert from "assert";
 var IS_WINDOWS3 = process.platform === "win32";
-function dirname4(p) {
+function dirname5(p) {
   p = safeTrimTrailingSeparator(p);
   if (IS_WINDOWS3 && /^\\\\[^\\]+(\\[^\\]+)?$/.test(p)) {
     return p;
   }
-  let result = path5.dirname(p);
+  let result = path6.dirname(p);
   if (IS_WINDOWS3 && /^\\\\[^\\]+\\[^\\]+\\$/.test(result)) {
     result = safeTrimTrailingSeparator(result);
   }
@@ -29168,7 +29350,7 @@ function ensureAbsoluteRoot(root, itemPath) {
   assert(hasAbsoluteRoot(root), `ensureAbsoluteRoot parameter 'root' must have an absolute root`);
   if (root.endsWith("/") || IS_WINDOWS3 && root.endsWith("\\")) {
   } else {
-    root += path5.sep;
+    root += path6.sep;
   }
   return root + itemPath;
 }
@@ -29202,10 +29384,10 @@ function safeTrimTrailingSeparator(p) {
     return "";
   }
   p = normalizeSeparators2(p);
-  if (!p.endsWith(path5.sep)) {
+  if (!p.endsWith(path6.sep)) {
     return p;
   }
-  if (p === path5.sep) {
+  if (p === path6.sep) {
     return p;
   }
   if (IS_WINDOWS3 && /^[A-Z]:\\$/i.test(p)) {
@@ -29240,14 +29422,14 @@ function getSearchPaths(patterns) {
     }
     let foundAncestor = false;
     let tempKey = key;
-    let parent = dirname4(tempKey);
+    let parent = dirname5(tempKey);
     while (parent !== tempKey) {
       if (searchPathMap[parent]) {
         foundAncestor = true;
         break;
       }
       tempKey = parent;
-      parent = dirname4(tempKey);
+      parent = dirname5(tempKey);
     }
     if (!foundAncestor) {
       result.push(pattern.searchPath);
@@ -29272,13 +29454,13 @@ function partialMatch(patterns, itemPath) {
 }
 
 // node_modules/@actions/glob/lib/internal-pattern.js
-import * as os6 from "os";
-import * as path7 from "path";
+import * as os7 from "os";
+import * as path8 from "path";
 var import_minimatch = __toESM(require_minimatch(), 1);
 import assert3 from "assert";
 
 // node_modules/@actions/glob/lib/internal-path.js
-import * as path6 from "path";
+import * as path7 from "path";
 import assert2 from "assert";
 var IS_WINDOWS5 = process.platform === "win32";
 var Path = class {
@@ -29292,15 +29474,15 @@ var Path = class {
       assert2(itemPath, `Parameter 'itemPath' must not be empty`);
       itemPath = safeTrimTrailingSeparator(itemPath);
       if (!hasRoot(itemPath)) {
-        this.segments = itemPath.split(path6.sep);
+        this.segments = itemPath.split(path7.sep);
       } else {
         let remaining = itemPath;
-        let dir = dirname4(remaining);
+        let dir = dirname5(remaining);
         while (dir !== remaining) {
-          const basename7 = path6.basename(remaining);
+          const basename7 = path7.basename(remaining);
           this.segments.unshift(basename7);
           remaining = dir;
-          dir = dirname4(remaining);
+          dir = dirname5(remaining);
         }
         this.segments.unshift(remaining);
       }
@@ -29312,10 +29494,10 @@ var Path = class {
         segment = normalizeSeparators2(itemPath[i]);
         if (i === 0 && hasRoot(segment)) {
           segment = safeTrimTrailingSeparator(segment);
-          assert2(segment === dirname4(segment), `Parameter 'itemPath' root segment contains information for multiple segments`);
+          assert2(segment === dirname5(segment), `Parameter 'itemPath' root segment contains information for multiple segments`);
           this.segments.push(segment);
         } else {
-          assert2(!segment.includes(path6.sep), `Parameter 'itemPath' contains unexpected path separators`);
+          assert2(!segment.includes(path7.sep), `Parameter 'itemPath' contains unexpected path separators`);
           this.segments.push(segment);
         }
       }
@@ -29326,12 +29508,12 @@ var Path = class {
    */
   toString() {
     let result = this.segments[0];
-    let skipSlash = result.endsWith(path6.sep) || IS_WINDOWS5 && /^[A-Z]:$/i.test(result);
+    let skipSlash = result.endsWith(path7.sep) || IS_WINDOWS5 && /^[A-Z]:$/i.test(result);
     for (let i = 1; i < this.segments.length; i++) {
       if (skipSlash) {
         skipSlash = false;
       } else {
-        result += path6.sep;
+        result += path7.sep;
       }
       result += this.segments[i];
     }
@@ -29364,7 +29546,7 @@ var Pattern = class _Pattern {
     }
     pattern = _Pattern.fixupPattern(pattern, homedir2);
     this.segments = new Path(pattern).segments;
-    this.trailingSeparator = normalizeSeparators2(pattern).endsWith(path7.sep);
+    this.trailingSeparator = normalizeSeparators2(pattern).endsWith(path8.sep);
     pattern = safeTrimTrailingSeparator(pattern);
     let foundGlob = false;
     const searchSegments = this.segments.map((x) => _Pattern.getLiteral(x)).filter((x) => !foundGlob && !(foundGlob = x === ""));
@@ -29388,8 +29570,8 @@ var Pattern = class _Pattern {
   match(itemPath) {
     if (this.segments[this.segments.length - 1] === "**") {
       itemPath = normalizeSeparators2(itemPath);
-      if (!itemPath.endsWith(path7.sep) && this.isImplicitPattern === false) {
-        itemPath = `${itemPath}${path7.sep}`;
+      if (!itemPath.endsWith(path8.sep) && this.isImplicitPattern === false) {
+        itemPath = `${itemPath}${path8.sep}`;
       }
     } else {
       itemPath = safeTrimTrailingSeparator(itemPath);
@@ -29404,7 +29586,7 @@ var Pattern = class _Pattern {
    */
   partialMatch(itemPath) {
     itemPath = safeTrimTrailingSeparator(itemPath);
-    if (dirname4(itemPath) === itemPath) {
+    if (dirname5(itemPath) === itemPath) {
       return this.rootRegExp.test(itemPath);
     }
     return this.minimatch.matchOne(itemPath.split(IS_WINDOWS6 ? /\\+/ : /\/+/), this.minimatch.set[0], true);
@@ -29424,10 +29606,10 @@ var Pattern = class _Pattern {
     assert3(literalSegments.every((x, i) => (x !== "." || i === 0) && x !== ".."), `Invalid pattern '${pattern}'. Relative pathing '.' and '..' is not allowed.`);
     assert3(!hasRoot(pattern) || literalSegments[0], `Invalid pattern '${pattern}'. Root segment must not contain globs.`);
     pattern = normalizeSeparators2(pattern);
-    if (pattern === "." || pattern.startsWith(`.${path7.sep}`)) {
+    if (pattern === "." || pattern.startsWith(`.${path8.sep}`)) {
       pattern = _Pattern.globEscape(process.cwd()) + pattern.substr(1);
-    } else if (pattern === "~" || pattern.startsWith(`~${path7.sep}`)) {
-      homedir2 = homedir2 || os6.homedir();
+    } else if (pattern === "~" || pattern.startsWith(`~${path8.sep}`)) {
+      homedir2 = homedir2 || os7.homedir();
       assert3(homedir2, "Unable to determine HOME directory");
       assert3(hasAbsoluteRoot(homedir2), `Expected HOME directory to be a rooted path. Actual '${homedir2}'`);
       pattern = _Pattern.globEscape(homedir2) + pattern.substr(1);
@@ -29502,8 +29684,8 @@ var Pattern = class _Pattern {
 
 // node_modules/@actions/glob/lib/internal-search-state.js
 var SearchState = class {
-  constructor(path19, level) {
-    this.path = path19;
+  constructor(path17, level) {
+    this.path = path17;
     this.level = level;
   }
 };
@@ -29511,11 +29693,11 @@ var SearchState = class {
 // node_modules/@actions/glob/lib/internal-globber.js
 var __awaiter8 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -29531,7 +29713,7 @@ var __awaiter8 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -29544,14 +29726,14 @@ var __asyncValues = function(o) {
   }, i);
   function verb(n) {
     i[n] = o[n] && function(v) {
-      return new Promise(function(resolve3, reject) {
-        v = o[n](v), settle(resolve3, reject, v.done, v.value);
+      return new Promise(function(resolve4, reject) {
+        v = o[n](v), settle(resolve4, reject, v.done, v.value);
       });
     };
   }
-  function settle(resolve3, reject, d, v) {
+  function settle(resolve4, reject, d, v) {
     Promise.resolve(v).then(function(v2) {
-      resolve3({ value: v2, done: d });
+      resolve4({ value: v2, done: d });
     }, reject);
   }
 };
@@ -29670,7 +29852,7 @@ var DefaultGlobber = class _DefaultGlobber {
         if (!stats) {
           continue;
         }
-        if (options.excludeHiddenFiles && path8.basename(item.path).match(/^\./)) {
+        if (options.excludeHiddenFiles && path9.basename(item.path).match(/^\./)) {
           continue;
         }
         if (stats.isDirectory()) {
@@ -29680,7 +29862,7 @@ var DefaultGlobber = class _DefaultGlobber {
             continue;
           }
           const childLevel = item.level + 1;
-          const childItems = (yield __await(fs3.promises.readdir(item.path))).map((x) => new SearchState(path8.join(item.path, x), childLevel));
+          const childItems = (yield __await(fs3.promises.readdir(item.path))).map((x) => new SearchState(path9.join(item.path, x), childLevel));
           stack.push(...childItems.reverse());
         } else if (match2 & MatchKind.File) {
           yield yield __await(item.path);
@@ -29748,11 +29930,11 @@ var DefaultGlobber = class _DefaultGlobber {
 // node_modules/@actions/glob/lib/glob.js
 var __awaiter9 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -29768,7 +29950,7 @@ var __awaiter9 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -29783,7 +29965,7 @@ function create(patterns, options) {
 var semver = __toESM(require_semver2(), 1);
 import * as crypto3 from "crypto";
 import * as fs4 from "fs";
-import * as path9 from "path";
+import * as path10 from "path";
 import * as util from "util";
 
 // node_modules/@actions/cache/lib/internal/constants.js
@@ -29815,11 +29997,11 @@ var CacheFileSizeLimit = 10 * Math.pow(1024, 3);
 // node_modules/@actions/cache/lib/internal/cacheUtils.js
 var __awaiter10 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -29835,7 +30017,7 @@ var __awaiter10 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -29848,14 +30030,14 @@ var __asyncValues2 = function(o) {
   }, i);
   function verb(n) {
     i[n] = o[n] && function(v) {
-      return new Promise(function(resolve3, reject) {
-        v = o[n](v), settle(resolve3, reject, v.done, v.value);
+      return new Promise(function(resolve4, reject) {
+        v = o[n](v), settle(resolve4, reject, v.done, v.value);
       });
     };
   }
-  function settle(resolve3, reject, d, v) {
+  function settle(resolve4, reject, d, v) {
     Promise.resolve(v).then(function(v2) {
-      resolve3({ value: v2, done: d });
+      resolve4({ value: v2, done: d });
     }, reject);
   }
 };
@@ -29875,9 +30057,9 @@ function createTempDirectory() {
           baseLocation = "/home";
         }
       }
-      tempDirectory = path9.join(baseLocation, "actions", "temp");
+      tempDirectory = path10.join(baseLocation, "actions", "temp");
     }
-    const dest = path9.join(tempDirectory, crypto3.randomUUID());
+    const dest = path10.join(tempDirectory, crypto3.randomUUID());
     yield mkdirP(dest);
     return dest;
   });
@@ -29899,7 +30081,7 @@ function resolvePaths(patterns) {
         _c = _g.value;
         _e = false;
         const file = _c;
-        const relativeFile = path9.relative(workspace, file).replace(new RegExp(`\\${path9.sep}`, "g"), "/");
+        const relativeFile = path10.relative(workspace, file).replace(new RegExp(`\\${path10.sep}`, "g"), "/");
         debug(`Matched: ${relativeFile}`);
         if (relativeFile === "") {
           paths.push(".");
@@ -30838,9 +31020,9 @@ function isStreamComplete(stream2) {
   if (stream2.readable === false) {
     return Promise.resolve();
   }
-  return new Promise((resolve3) => {
+  return new Promise((resolve4) => {
     const handler = () => {
-      resolve3();
+      resolve4();
       stream2.removeListener("close", handler);
       stream2.removeListener("end", handler);
       stream2.removeListener("error", handler);
@@ -30995,8 +31177,8 @@ var NodeHttpClient = class {
       headers: request.headers.toJSON({ preserveCase: true }),
       ...request.requestOverrides
     };
-    return new Promise((resolve3, reject) => {
-      const req = isInsecure ? http2.request(options, resolve3) : https2.request(options, resolve3);
+    return new Promise((resolve4, reject) => {
+      const req = isInsecure ? http2.request(options, resolve4) : https2.request(options, resolve4);
       req.once("error", (err) => {
         reject(new RestError(err.message, { code: err.code ?? RestError.REQUEST_SEND_ERROR, request }));
       });
@@ -31080,7 +31262,7 @@ function getDecodedResponseStream(stream2, headers) {
   return stream2;
 }
 function streamToText(stream2) {
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     const buffer3 = [];
     stream2.on("data", (chunk) => {
       if (Buffer.isBuffer(chunk)) {
@@ -31090,7 +31272,7 @@ function streamToText(stream2) {
       }
     });
     stream2.on("end", () => {
-      resolve3(Buffer.concat(buffer3).toString("utf8"));
+      resolve4(Buffer.concat(buffer3).toString("utf8"));
     });
     stream2.on("error", (e) => {
       if (e && e?.name === "AbortError") {
@@ -31185,7 +31367,7 @@ function calculateRetryDelay(retryAttempt, config) {
 // node_modules/@typespec/ts-http-runtime/dist/esm/util/helpers.js
 var StandardAbortMessage = "The operation was aborted.";
 function delay(delayInMs, value, options) {
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     let timer = void 0;
     let onAborted = void 0;
     const rejectOnAbort = () => {
@@ -31208,7 +31390,7 @@ function delay(delayInMs, value, options) {
     }
     timer = setTimeout(() => {
       removeListeners();
-      resolve3(value);
+      resolve4(value);
     }, delayInMs);
     if (options?.abortSignal) {
       options.abortSignal.addEventListener("abort", onAborted);
@@ -31894,14 +32076,14 @@ function redirectPolicy2(options = {}) {
 }
 
 // node_modules/@azure/core-rest-pipeline/dist/esm/util/userAgentPlatform.js
-import os7 from "node:os";
+import os8 from "node:os";
 import process4 from "node:process";
 function getHeaderName2() {
   return "User-Agent";
 }
 async function setPlatformSpecificData2(map) {
   if (process4 && process4.versions) {
-    const osInfo = `${os7.type()} ${os7.release()}; ${os7.arch()}`;
+    const osInfo = `${os8.type()} ${os8.release()}; ${os8.arch()}`;
     if (process4.versions.bun) {
       map.set("Bun", `${process4.versions.bun} (${osInfo})`);
     } else if (process4.versions.deno) {
@@ -32011,7 +32193,7 @@ var AbortError2 = class extends Error {
 // node_modules/@azure/core-util/dist/esm/createAbortablePromise.js
 function createAbortablePromise(buildPromise, options) {
   const { cleanupBeforeAbort, abortSignal, abortErrorMsg } = options ?? {};
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     function rejectOnAbort() {
       reject(new AbortError2(abortErrorMsg ?? "The operation was aborted."));
     }
@@ -32029,7 +32211,7 @@ function createAbortablePromise(buildPromise, options) {
     try {
       buildPromise((x) => {
         removeListeners();
-        resolve3(x);
+        resolve4(x);
       }, (x) => {
         removeListeners();
         reject(x);
@@ -32046,8 +32228,8 @@ var StandardAbortMessage2 = "The delay was aborted.";
 function delay2(timeInMs, options) {
   let token;
   const { abortSignal, abortErrorMsg } = options ?? {};
-  return createAbortablePromise((resolve3) => {
-    token = setTimeout(resolve3, timeInMs);
+  return createAbortablePromise((resolve4) => {
+    token = setTimeout(resolve4, timeInMs);
   }, {
     cleanupBeforeAbort: () => clearTimeout(token),
     abortSignal,
@@ -34057,15 +34239,15 @@ function getRequestUrl(baseUri, operationSpec, operationArguments, fallbackObjec
   let isAbsolutePath = false;
   let requestUrl = replaceAll(baseUri, urlReplacements);
   if (operationSpec.path) {
-    let path19 = replaceAll(operationSpec.path, urlReplacements);
-    if (operationSpec.path === "/{nextLink}" && path19.startsWith("/")) {
-      path19 = path19.substring(1);
+    let path17 = replaceAll(operationSpec.path, urlReplacements);
+    if (operationSpec.path === "/{nextLink}" && path17.startsWith("/")) {
+      path17 = path17.substring(1);
     }
-    if (isAbsoluteUrl(path19)) {
-      requestUrl = path19;
+    if (isAbsoluteUrl(path17)) {
+      requestUrl = path17;
       isAbsolutePath = true;
     } else {
-      requestUrl = appendPath(requestUrl, path19);
+      requestUrl = appendPath(requestUrl, path17);
     }
   }
   const { queryParams, sequenceParams } = calculateQueryParameters(operationSpec, operationArguments, fallbackObject);
@@ -34111,9 +34293,9 @@ function appendPath(url2, pathToAppend) {
   }
   const searchStart = pathToAppend.indexOf("?");
   if (searchStart !== -1) {
-    const path19 = pathToAppend.substring(0, searchStart);
+    const path17 = pathToAppend.substring(0, searchStart);
     const search = pathToAppend.substring(searchStart + 1);
-    newPath = newPath + path19;
+    newPath = newPath + path17;
     if (search) {
       parsedUrl.search = parsedUrl.search ? `${parsedUrl.search}&${search}` : search;
     }
@@ -37606,16 +37788,16 @@ var MatcherView = class {
    * @returns {string|undefined}
    */
   getCurrentTag() {
-    const path19 = this._matcher.path;
-    return path19.length > 0 ? path19[path19.length - 1].tag : void 0;
+    const path17 = this._matcher.path;
+    return path17.length > 0 ? path17[path17.length - 1].tag : void 0;
   }
   /**
    * Get current namespace.
    * @returns {string|undefined}
    */
   getCurrentNamespace() {
-    const path19 = this._matcher.path;
-    return path19.length > 0 ? path19[path19.length - 1].namespace : void 0;
+    const path17 = this._matcher.path;
+    return path17.length > 0 ? path17[path17.length - 1].namespace : void 0;
   }
   /**
    * Get current node's attribute value.
@@ -37623,9 +37805,9 @@ var MatcherView = class {
    * @returns {*}
    */
   getAttrValue(attrName) {
-    const path19 = this._matcher.path;
-    if (path19.length === 0) return void 0;
-    return path19[path19.length - 1].values?.[attrName];
+    const path17 = this._matcher.path;
+    if (path17.length === 0) return void 0;
+    return path17[path17.length - 1].values?.[attrName];
   }
   /**
    * Check if current node has an attribute.
@@ -37633,9 +37815,9 @@ var MatcherView = class {
    * @returns {boolean}
    */
   hasAttr(attrName) {
-    const path19 = this._matcher.path;
-    if (path19.length === 0) return false;
-    const current = path19[path19.length - 1];
+    const path17 = this._matcher.path;
+    if (path17.length === 0) return false;
+    const current = path17[path17.length - 1];
     return current.values !== void 0 && attrName in current.values;
   }
   /**
@@ -37643,18 +37825,18 @@ var MatcherView = class {
    * @returns {number}
    */
   getPosition() {
-    const path19 = this._matcher.path;
-    if (path19.length === 0) return -1;
-    return path19[path19.length - 1].position ?? 0;
+    const path17 = this._matcher.path;
+    if (path17.length === 0) return -1;
+    return path17[path17.length - 1].position ?? 0;
   }
   /**
    * Get current node's repeat counter (occurrence count of this tag name).
    * @returns {number}
    */
   getCounter() {
-    const path19 = this._matcher.path;
-    if (path19.length === 0) return -1;
-    return path19[path19.length - 1].counter ?? 0;
+    const path17 = this._matcher.path;
+    if (path17.length === 0) return -1;
+    return path17[path17.length - 1].counter ?? 0;
   }
   /**
    * Get current node's sibling index (alias for getPosition).
@@ -39858,7 +40040,7 @@ var BufferScheduler = class {
    *
    */
   async do() {
-    return new Promise((resolve3, reject) => {
+    return new Promise((resolve4, reject) => {
       this.readable.on("data", (data) => {
         data = typeof data === "string" ? Buffer.from(data, this.encoding) : data;
         this.appendUnresolvedData(data);
@@ -39886,11 +40068,11 @@ var BufferScheduler = class {
         if (this.isStreamEnd && this.executingOutgoingHandlers === 0) {
           if (this.unresolvedLength > 0 && this.unresolvedLength < this.bufferSize) {
             const buffer3 = this.shiftBufferFromUnresolvedDataArray();
-            this.outgoingHandler(() => buffer3.getReadableStream(), buffer3.size, this.offset).then(resolve3).catch(reject);
+            this.outgoingHandler(() => buffer3.getReadableStream(), buffer3.size, this.offset).then(resolve4).catch(reject);
           } else if (this.unresolvedLength >= this.bufferSize) {
             return;
           } else {
-            resolve3();
+            resolve4();
           }
         }
       });
@@ -40000,16 +40182,16 @@ import Stream, { Readable as Readable3 } from "node:stream";
 
 // node_modules/@azure/storage-common/dist/esm/crc64.js
 import { createRequire } from "node:module";
-import { dirname as dirname5 } from "node:path";
-import { fileURLToPath } from "node:url";
+import { dirname as dirname6 } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
 var __isNode__ = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node === "string";
 var require2;
 var __filename;
 var __dirname;
 if (__isNode__) {
   require2 = createRequire(import.meta.url);
-  __filename = fileURLToPath(import.meta.url);
-  __dirname = dirname5(__filename);
+  __filename = fileURLToPath2(import.meta.url);
+  __dirname = dirname6(__filename);
 }
 var NativeCRC64 = (() => {
   var _scriptDir = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : void 0;
@@ -40018,8 +40200,8 @@ var NativeCRC64 = (() => {
     NativeCRC642 = NativeCRC642 || {};
     var Module = typeof NativeCRC642 != "undefined" ? NativeCRC642 : {};
     var readyPromiseResolve, readyPromiseReject;
-    Module["ready"] = new Promise(function(resolve3, reject) {
-      readyPromiseResolve = resolve3;
+    Module["ready"] = new Promise(function(resolve4, reject) {
+      readyPromiseResolve = resolve4;
       readyPromiseReject = reject;
     });
     ["_malloc", "_free", "_emscripten_bind_VoidPtr___destroy___0", "_emscripten_bind_Crc64Hash_Crc64Hash_0", "_emscripten_bind_Crc64Hash_OnAppend_2", "_emscripten_bind_Crc64Hash_OnFinal_3", "_emscripten_bind_Crc64Hash___destroy___0", "_fflush", "onRuntimeInitialized"].forEach((prop) => {
@@ -40044,11 +40226,11 @@ var NativeCRC64 = (() => {
       throw new Error("Module.ENVIRONMENT has been deprecated. To force the environment, use the ENVIRONMENT compile-time option (for example, -sENVIRONMENT=web or -sENVIRONMENT=node)");
     }
     var scriptDirectory = "";
-    function locateFile(path19) {
+    function locateFile(path17) {
       if (Module["locateFile"]) {
-        return Module["locateFile"](path19, scriptDirectory);
+        return Module["locateFile"](path17, scriptDirectory);
       }
-      return scriptDirectory + path19;
+      return scriptDirectory + path17;
     }
     var read_, readAsync, readBinary, setWindowTitle;
     function logExceptionOnExit(e) {
@@ -43076,7 +43258,7 @@ function getURLQueries(url2) {
   return queries;
 }
 async function delay3(timeInMs, aborter, abortError) {
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     let timeout;
     const abortHandler = () => {
       if (timeout !== void 0) {
@@ -43088,7 +43270,7 @@ async function delay3(timeInMs, aborter, abortError) {
       if (aborter !== void 0) {
         aborter.removeEventListener("abort", abortHandler);
       }
-      resolve3();
+      resolve4();
     };
     timeout = setTimeout(resolveHandler, timeInMs);
     if (aborter !== void 0) {
@@ -43622,9 +43804,9 @@ var StorageSharedKeyCredentialPolicy = class extends CredentialPolicy {
    * @param request -
    */
   getCanonicalizedResourceString(request) {
-    const path19 = getURLPath(request.url) || "/";
+    const path17 = getURLPath(request.url) || "/";
     let canonicalizedResourceString = "";
-    canonicalizedResourceString += `/${this.factory.accountName}${path19}`;
+    canonicalizedResourceString += `/${this.factory.accountName}${path17}`;
     const queries = getURLQueries(request.url);
     const lowercaseQueries = {};
     if (queries) {
@@ -44106,9 +44288,9 @@ function storageSharedKeyCredentialPolicy(options) {
     return canonicalizedHeadersStringToSign;
   }
   function getCanonicalizedResourceString(request) {
-    const path19 = getURLPath(request.url) || "/";
+    const path17 = getURLPath(request.url) || "/";
     let canonicalizedResourceString = "";
-    canonicalizedResourceString += `/${options.accountName}${path19}`;
+    canonicalizedResourceString += `/${options.accountName}${path17}`;
     const queries = getURLQueries(request.url);
     const lowercaseQueries = {};
     if (queries) {
@@ -58207,10 +58389,10 @@ var StorageContextClient = class extends StorageClient {
 // node_modules/@azure/storage-blob/dist/esm/utils/utils.common.js
 function escapeURLPath(url2) {
   const urlParsed = new URL(url2);
-  let path19 = urlParsed.pathname;
-  path19 = path19 || "/";
-  path19 = escape(path19);
-  urlParsed.pathname = path19;
+  let path17 = urlParsed.pathname;
+  path17 = path17 || "/";
+  path17 = escape(path17);
+  urlParsed.pathname = path17;
   return urlParsed.toString();
 }
 function getProxyUriFromDevConnString(connectionString) {
@@ -58295,9 +58477,9 @@ function escape(text) {
 }
 function appendToURLPath(url2, name) {
   const urlParsed = new URL(url2);
-  let path19 = urlParsed.pathname;
-  path19 = path19 ? path19.endsWith("/") ? `${path19}${name}` : `${path19}/${name}` : name;
-  urlParsed.pathname = path19;
+  let path17 = urlParsed.pathname;
+  path17 = path17 ? path17.endsWith("/") ? `${path17}${name}` : `${path17}/${name}` : name;
+  urlParsed.pathname = path17;
   return urlParsed.toString();
 }
 function setURLParameter2(url2, name, value) {
@@ -61182,7 +61364,7 @@ var AvroReadableFromStream = class extends AvroReadable {
       this._position += chunk.length;
       return this.toUint8Array(chunk);
     } else {
-      return new Promise((resolve3, reject) => {
+      return new Promise((resolve4, reject) => {
         const cleanUp = () => {
           this._readable.removeListener("readable", readableCallback);
           this._readable.removeListener("error", rejectCallback);
@@ -61197,7 +61379,7 @@ var AvroReadableFromStream = class extends AvroReadable {
           if (callbackChunk) {
             this._position += callbackChunk.length;
             cleanUp();
-            resolve3(this.toUint8Array(callbackChunk));
+            resolve4(this.toUint8Array(callbackChunk));
           }
         };
         const rejectCallback = () => {
@@ -61843,8 +62025,8 @@ var Poller = class {
     this.stopped = true;
     this.pollProgressCallbacks = [];
     this.operation = operation;
-    this.promise = new Promise((resolve3, reject) => {
-      this.resolve = resolve3;
+    this.promise = new Promise((resolve4, reject) => {
+      this.resolve = resolve4;
       this.reject = reject;
     });
     this.promise.catch(() => {
@@ -62249,8 +62431,8 @@ var Batch = class {
       return Promise.resolve();
     }
     this.parallelExecute();
-    return new Promise((resolve3, reject) => {
-      this.emitter.on("finish", resolve3);
+    return new Promise((resolve4, reject) => {
+      this.emitter.on("finish", resolve4);
       this.emitter.on("error", (error2) => {
         this.state = BatchStates.Error;
         reject(error2);
@@ -62297,12 +62479,12 @@ import util3 from "node:util";
 async function streamToBuffer(stream2, buffer3, offset, end, encoding) {
   let pos = 0;
   const count = end - offset;
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     const timeout = setTimeout(() => reject(new Error(`The operation cannot be completed in timeout.`)), REQUEST_TIMEOUT);
     stream2.on("readable", () => {
       if (pos >= count) {
         clearTimeout(timeout);
-        resolve3();
+        resolve4();
         return;
       }
       let chunk;
@@ -62315,7 +62497,7 @@ async function streamToBuffer(stream2, buffer3, offset, end, encoding) {
         pos += chunkLength;
         if (pos >= count) {
           clearTimeout(timeout);
-          resolve3();
+          resolve4();
           return;
         }
       }
@@ -62325,7 +62507,7 @@ async function streamToBuffer(stream2, buffer3, offset, end, encoding) {
       if (pos < count) {
         reject(new Error(`Stream drains before getting enough data needed. Data read: ${pos}, data need: ${count}`));
       }
-      resolve3();
+      resolve4();
     });
     stream2.on("error", (msg) => {
       clearTimeout(timeout);
@@ -62334,7 +62516,7 @@ async function streamToBuffer(stream2, buffer3, offset, end, encoding) {
   });
 }
 async function readStreamToLocalFile(rs, file) {
-  return new Promise((resolve3, reject) => {
+  return new Promise((resolve4, reject) => {
     const ws = fs5.createWriteStream(file);
     rs.on("error", (err) => {
       reject(err);
@@ -62342,7 +62524,7 @@ async function readStreamToLocalFile(rs, file) {
     ws.on("error", (err) => {
       reject(err);
     });
-    ws.on("close", resolve3);
+    ws.on("close", resolve4);
     rs.pipe(ws);
   });
 }
@@ -63286,7 +63468,7 @@ var BlobClient = class _BlobClient extends StorageClient2 {
    * @returns The SAS URI consisting of the URI to the resource represented by this client, followed by the generated SAS token.
    */
   generateSasUrl(options) {
-    return new Promise((resolve3) => {
+    return new Promise((resolve4) => {
       if (!(this.credential instanceof StorageSharedKeyCredential)) {
         throw new RangeError("Can only generate the SAS when the client is initialized with a shared key credential");
       }
@@ -63297,7 +63479,7 @@ var BlobClient = class _BlobClient extends StorageClient2 {
         versionId: this._versionId,
         ...options
       }, this.credential).toString();
-      resolve3(appendToURLQuery(this.url, sas));
+      resolve4(appendToURLQuery(this.url, sas));
     });
   }
   /**
@@ -63336,7 +63518,7 @@ var BlobClient = class _BlobClient extends StorageClient2 {
    * @returns The SAS URI consisting of the URI to the resource represented by this client, followed by the generated SAS token.
    */
   generateUserDelegationSasUrl(options, userDelegationKey) {
-    return new Promise((resolve3) => {
+    return new Promise((resolve4) => {
       const sas = generateBlobSASQueryParameters({
         containerName: this._containerName,
         blobName: this._name,
@@ -63344,7 +63526,7 @@ var BlobClient = class _BlobClient extends StorageClient2 {
         versionId: this._versionId,
         ...options
       }, userDelegationKey, this.accountName).toString();
-      resolve3(appendToURLQuery(this.url, sas));
+      resolve4(appendToURLQuery(this.url, sas));
     });
   }
   /**
@@ -65133,11 +65315,11 @@ var RateLimitError = class extends Error {
 // node_modules/@actions/cache/lib/internal/uploadUtils.js
 var __awaiter11 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -65153,7 +65335,7 @@ var __awaiter11 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -65277,11 +65459,11 @@ import * as util4 from "util";
 // node_modules/@actions/cache/lib/internal/requestUtils.js
 var __awaiter12 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -65297,7 +65479,7 @@ var __awaiter12 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -65327,7 +65509,7 @@ function isRetryableStatusCode(statusCode) {
 }
 function sleep(milliseconds) {
   return __awaiter12(this, void 0, void 0, function* () {
-    return new Promise((resolve3) => setTimeout(resolve3, milliseconds));
+    return new Promise((resolve4) => setTimeout(resolve4, milliseconds));
   });
 }
 function retry(name_1, method_1, getStatusCode_1) {
@@ -65402,11 +65584,11 @@ function retryHttpClientResponse(name_1, method_1) {
 // node_modules/@actions/cache/lib/internal/downloadUtils.js
 var __awaiter13 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -65422,7 +65604,7 @@ var __awaiter13 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -65701,8 +65883,8 @@ function downloadCacheStorageSDK(archiveLocation, archivePath, options) {
 }
 var promiseWithTimeout = (timeoutMs, promise) => __awaiter13(void 0, void 0, void 0, function* () {
   let timeoutHandle;
-  const timeoutPromise = new Promise((resolve3) => {
-    timeoutHandle = setTimeout(() => resolve3("timeout"), timeoutMs);
+  const timeoutPromise = new Promise((resolve4) => {
+    timeoutHandle = setTimeout(() => resolve4("timeout"), timeoutMs);
   });
   return Promise.race([promise, timeoutPromise]).then((result) => {
     clearTimeout(timeoutHandle);
@@ -65812,11 +65994,11 @@ function getUserAgentString2() {
 // node_modules/@actions/cache/lib/internal/cacheHttpClient.js
 var __awaiter14 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -65832,7 +66014,7 @@ var __awaiter14 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -66704,11 +66886,11 @@ function maskSecretUrls(body2) {
 // node_modules/@actions/cache/lib/internal/shared/cacheTwirpClient.js
 var __awaiter15 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -66724,7 +66906,7 @@ var __awaiter15 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -66853,7 +67035,7 @@ var CacheServiceClient = class {
   }
   sleep(milliseconds) {
     return __awaiter15(this, void 0, void 0, function* () {
-      return new Promise((resolve3) => setTimeout(resolve3, milliseconds));
+      return new Promise((resolve4) => setTimeout(resolve4, milliseconds));
     });
   }
   getExponentialRetryTimeMilliseconds(attempt) {
@@ -66875,14 +67057,14 @@ function internalCacheTwirpClient(options) {
 
 // node_modules/@actions/cache/lib/internal/tar.js
 import { existsSync as existsSync3, writeFileSync as writeFileSync2 } from "fs";
-import * as path10 from "path";
+import * as path11 from "path";
 var __awaiter16 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -66898,7 +67080,7 @@ var __awaiter16 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -66946,13 +67128,13 @@ function getTarArgs(tarPath_1, compressionMethod_1, type_1) {
     const BSD_TAR_ZSTD = tarPath.type === ArchiveToolType.BSD && compressionMethod !== CompressionMethod.Gzip && IS_WINDOWS8;
     switch (type) {
       case "create":
-        args.push("--posix", "-cf", BSD_TAR_ZSTD ? tarFile : cacheFileName.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "--exclude", BSD_TAR_ZSTD ? tarFile : cacheFileName.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "-P", "-C", workingDirectory.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "--files-from", ManifestFilename);
+        args.push("--posix", "-cf", BSD_TAR_ZSTD ? tarFile : cacheFileName.replace(new RegExp(`\\${path11.sep}`, "g"), "/"), "--exclude", BSD_TAR_ZSTD ? tarFile : cacheFileName.replace(new RegExp(`\\${path11.sep}`, "g"), "/"), "-P", "-C", workingDirectory.replace(new RegExp(`\\${path11.sep}`, "g"), "/"), "--files-from", ManifestFilename);
         break;
       case "extract":
-        args.push("-xf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "-P", "-C", workingDirectory.replace(new RegExp(`\\${path10.sep}`, "g"), "/"));
+        args.push("-xf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path11.sep}`, "g"), "/"), "-P", "-C", workingDirectory.replace(new RegExp(`\\${path11.sep}`, "g"), "/"));
         break;
       case "list":
-        args.push("-tf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path10.sep}`, "g"), "/"), "-P");
+        args.push("-tf", BSD_TAR_ZSTD ? tarFile : archivePath.replace(new RegExp(`\\${path11.sep}`, "g"), "/"), "-P");
         break;
     }
     if (tarPath.type === ArchiveToolType.GNU) {
@@ -66998,7 +67180,7 @@ function getDecompressionProgram(tarPath, compressionMethod, archivePath) {
         return BSD_TAR_ZSTD ? [
           "zstd -d --long=30 --force -o",
           TarFilename,
-          archivePath.replace(new RegExp(`\\${path10.sep}`, "g"), "/")
+          archivePath.replace(new RegExp(`\\${path11.sep}`, "g"), "/")
         ] : [
           "--use-compress-program",
           IS_WINDOWS8 ? '"zstd -d --long=30"' : "unzstd --long=30"
@@ -67007,7 +67189,7 @@ function getDecompressionProgram(tarPath, compressionMethod, archivePath) {
         return BSD_TAR_ZSTD ? [
           "zstd -d --force -o",
           TarFilename,
-          archivePath.replace(new RegExp(`\\${path10.sep}`, "g"), "/")
+          archivePath.replace(new RegExp(`\\${path11.sep}`, "g"), "/")
         ] : ["--use-compress-program", IS_WINDOWS8 ? '"zstd -d"' : "unzstd"];
       default:
         return ["-z"];
@@ -67022,7 +67204,7 @@ function getCompressionProgram(tarPath, compressionMethod) {
       case CompressionMethod.Zstd:
         return BSD_TAR_ZSTD ? [
           "zstd -T0 --long=30 --force -o",
-          cacheFileName.replace(new RegExp(`\\${path10.sep}`, "g"), "/"),
+          cacheFileName.replace(new RegExp(`\\${path11.sep}`, "g"), "/"),
           TarFilename
         ] : [
           "--use-compress-program",
@@ -67031,7 +67213,7 @@ function getCompressionProgram(tarPath, compressionMethod) {
       case CompressionMethod.ZstdWithoutLong:
         return BSD_TAR_ZSTD ? [
           "zstd -T0 --force -o",
-          cacheFileName.replace(new RegExp(`\\${path10.sep}`, "g"), "/"),
+          cacheFileName.replace(new RegExp(`\\${path11.sep}`, "g"), "/"),
           TarFilename
         ] : ["--use-compress-program", IS_WINDOWS8 ? '"zstd -T0"' : "zstdmt"];
       default:
@@ -67069,7 +67251,7 @@ function extractTar(archivePath, compressionMethod) {
 }
 function createTar(archiveFolder, sourceDirectories, compressionMethod) {
   return __awaiter16(this, void 0, void 0, function* () {
-    writeFileSync2(path10.join(archiveFolder, ManifestFilename), sourceDirectories.join("\n"));
+    writeFileSync2(path11.join(archiveFolder, ManifestFilename), sourceDirectories.join("\n"));
     const commands = yield getCommands(compressionMethod, "create");
     yield execCommands(commands, archiveFolder);
   });
@@ -67078,11 +67260,11 @@ function createTar(archiveFolder, sourceDirectories, compressionMethod) {
 // node_modules/@actions/cache/lib/cache.js
 var __awaiter17 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -67098,7 +67280,7 @@ var __awaiter17 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -67188,7 +67370,7 @@ function restoreCacheV1(paths_1, primaryKey_1, restoreKeys_1, options_1) {
         info("Lookup only - skipping download");
         return cacheEntry.cacheKey;
       }
-      archivePath = path11.join(yield createTempDirectory(), getCacheFileName(compressionMethod));
+      archivePath = path12.join(yield createTempDirectory(), getCacheFileName(compressionMethod));
       debug(`Archive Path: ${archivePath}`);
       yield downloadCache(cacheEntry.archiveLocation, archivePath, options);
       if (isDebug()) {
@@ -67257,7 +67439,7 @@ function restoreCacheV2(paths_1, primaryKey_1, restoreKeys_1, options_1) {
         info("Lookup only - skipping download");
         return response.matchedKey;
       }
-      archivePath = path11.join(yield createTempDirectory(), getCacheFileName(compressionMethod));
+      archivePath = path12.join(yield createTempDirectory(), getCacheFileName(compressionMethod));
       debug(`Archive path: ${archivePath}`);
       debug(`Starting download of archive to: ${archivePath}`);
       yield downloadCache(response.signedDownloadUrl, archivePath, options);
@@ -67319,7 +67501,7 @@ function saveCacheV1(paths_1, key_1, options_1) {
       throw new Error(`Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`);
     }
     const archiveFolder = yield createTempDirectory();
-    const archivePath = path11.join(archiveFolder, getCacheFileName(compressionMethod));
+    const archivePath = path12.join(archiveFolder, getCacheFileName(compressionMethod));
     debug(`Archive Path: ${archivePath}`);
     try {
       yield createTar(archiveFolder, cachePaths, compressionMethod);
@@ -67383,7 +67565,7 @@ function saveCacheV2(paths_1, key_1, options_1) {
       throw new Error(`Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`);
     }
     const archiveFolder = yield createTempDirectory();
-    const archivePath = path11.join(archiveFolder, getCacheFileName(compressionMethod));
+    const archivePath = path12.join(archiveFolder, getCacheFileName(compressionMethod));
     debug(`Archive Path: ${archivePath}`);
     try {
       yield createTar(archiveFolder, cachePaths, compressionMethod);
@@ -67555,91 +67737,20 @@ function formatError(error2) {
 }
 
 // src/debuggers.ts
-import { existsSync as existsSync7, mkdirSync as mkdirSync3 } from "node:fs";
-import * as path16 from "node:path";
+import { existsSync as existsSync5, mkdirSync as mkdirSync2 } from "node:fs";
+import * as path14 from "node:path";
 
-// src/download.ts
-import { createWriteStream as createWriteStream2, existsSync as existsSync4, mkdirSync, renameSync, rmSync } from "node:fs";
+// src/install.ts
+import { createWriteStream as createWriteStream2, existsSync as existsSync4, mkdirSync, readdirSync, renameSync, rmSync, statSync as statSync2 } from "node:fs";
 import * as http3 from "node:http";
 import * as https3 from "node:https";
-import * as path12 from "node:path";
-
-// src/lists.ts
-function uniqueStrings(values) {
-  const seen = /* @__PURE__ */ new Set();
-  const result = [];
-  for (const value of values) {
-    const key = value.toLowerCase();
-    if (false === seen.has(key)) {
-      seen.add(key);
-      result.push(value);
-    }
-  }
-  return result;
-}
-
-// src/settings.ts
-var defaultDownloadUrls = [
-  "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
-];
-var cmakeGenerator = "NMake Makefiles";
-var wdkOnlyCacheKey = "wdk-7600.16385.1";
-var debuggerCacheKey = "wdk-7600.16385.1-debugger";
+import * as path13 from "node:path";
+import { spawn as spawn2 } from "node:child_process";
 var downloadRetries = 3;
-function readInputs() {
-  const configuredDownloadUrls = splitDownloadUrls(getInput("download-url"));
-  const downloadUrls = uniqueStrings(configuredDownloadUrls.concat(defaultDownloadUrls));
-  const root = getInput("root");
-  const debuggerEnabled = readBooleanInput("debugger", false);
-  return {
-    root,
-    downloadUrls,
-    debugger: debuggerEnabled
-  };
-}
-function cacheKeyForDebugger(debuggerEnabled) {
-  if (true === debuggerEnabled) {
-    return debuggerCacheKey;
-  }
-  return wdkOnlyCacheKey;
-}
-function restoreKeysForDebugger(debuggerEnabled) {
-  if (true === debuggerEnabled) {
-    return [wdkOnlyCacheKey];
-  }
-  return [];
-}
-function splitDownloadUrls(value) {
-  const result = [];
-  const parts = value.split(/[\r\n,;]+/);
-  for (const part of parts) {
-    const trimmed = part.trim();
-    if ("" !== trimmed) {
-      result.push(trimmed);
-    }
-  }
-  return result;
-}
-function readBooleanInput(name, defaultValue) {
-  const rawValue = getInput(name);
-  const value = rawValue.trim().toLowerCase();
-  if ("" === value) {
-    return defaultValue;
-  }
-  if ("true" === value) {
-    return true;
-  }
-  if ("false" === value) {
-    return false;
-  }
-  throw new Error(`Input '${name}' must be true or false.`);
-}
-
-// src/download.ts
 var maxRedirects = 8;
 var requestTimeoutMilliseconds = 3e5;
 async function ensureWdk7Iso(cacheRoot, urls) {
-  const isoPath = path12.join(cacheRoot, "GRMWDK_EN_7600_1.ISO");
+  const isoPath = path13.join(cacheRoot, "GRMWDK_EN_7600_1.ISO");
   if (true === existsSync4(isoPath)) {
     info(`Using cached WDK7 ISO: ${isoPath}`);
     return isoPath;
@@ -67647,6 +67758,140 @@ async function ensureWdk7Iso(cacheRoot, urls) {
   const downloadedUrl = await downloadFileFromUrlsWithRetries(urls, isoPath, downloadRetries);
   info(`Downloaded WDK7 ISO from: ${downloadedUrl}`);
   return isoPath;
+}
+async function mountIso(isoPath) {
+  const script = path13.join(actionRoot(), "scripts", "mount-iso.ps1");
+  const output = await runProcess("powershell.exe", [
+    "-NoProfile",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    script,
+    "-ImagePath",
+    isoPath
+  ], { silent: true });
+  const drive = lastNonEmptyLine(output);
+  if ("" === drive) {
+    throw new Error("Mount-DiskImage did not return a drive letter.");
+  }
+  return drive.replace(":", "");
+}
+async function dismountIso(isoPath) {
+  const script = path13.join(actionRoot(), "scripts", "dismount-iso.ps1");
+  await runProcess("powershell.exe", [
+    "-NoProfile",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    script,
+    "-ImagePath",
+    isoPath
+  ], { silent: true });
+}
+async function extractMsi(msiPath, targetRoot, logRoot) {
+  const baseName = path13.basename(msiPath, path13.extname(msiPath));
+  const logPath = path13.join(logRoot, `${baseName}.log`);
+  try {
+    info(`Extracting ${path13.basename(msiPath)} to ${targetRoot}`);
+    await runMsiExtraction(msiPath, targetRoot, logPath);
+    return true;
+  } catch (error2) {
+    info(`Skipping ${path13.basename(msiPath)}: ${formatError2(error2)}`);
+    return false;
+  }
+}
+async function installWdk7FromIso(isoPath, targetRoot) {
+  info(`Mounting WDK7 ISO: ${isoPath}`);
+  const drive = await mountIso(isoPath);
+  try {
+    const mediaRoot = `${drive}:\\WDK`;
+    if (false === existsSync4(mediaRoot)) {
+      throw new Error(`Mounted ISO does not contain a WDK directory: ${mediaRoot}`);
+    }
+    mkdirSync(targetRoot, { recursive: true });
+    const logRoot = path13.join(targetRoot, "_install_logs");
+    mkdirSync(logRoot, { recursive: true });
+    const msiFiles = listWdkMsiFiles(mediaRoot);
+    if (0 === msiFiles.length) {
+      throw new Error(`No WDK MSI packages found under '${mediaRoot}'.`);
+    }
+    for (const msiPath of msiFiles) {
+      const baseName = path13.basename(msiPath, path13.extname(msiPath));
+      const logPath = path13.join(logRoot, `${baseName}.log`);
+      info(`Extracting ${path13.basename(msiPath)}`);
+      await runMsiExtraction(msiPath, targetRoot, logPath);
+    }
+  } finally {
+    await dismountIso(isoPath);
+  }
+}
+function listFilesUnder(root, predicate, maxDepth = 10) {
+  const resolvedRoot = path13.resolve(root);
+  if ("" === root.trim() || false === existsSync4(resolvedRoot)) {
+    return [];
+  }
+  const result = [];
+  const stack = [{ dir: resolvedRoot, depth: 0 }];
+  while (0 < stack.length) {
+    const current = stack.pop();
+    if (void 0 === current) {
+      continue;
+    }
+    const entries = readDirectoryEntries(current.dir);
+    for (const entry of entries) {
+      const entryPath = path13.join(current.dir, entry);
+      const stats = readStats(entryPath);
+      if (void 0 === stats) {
+        continue;
+      }
+      if (true === stats.isDirectory()) {
+        if (current.depth < maxDepth) {
+          stack.push({ dir: entryPath, depth: current.depth + 1 });
+        }
+      } else if (true === predicate(entryPath)) {
+        result.push(entryPath);
+      }
+    }
+  }
+  return result;
+}
+async function runProcess(command, args, options) {
+  function runProcessPromise(resolve4, reject) {
+    const cwd = void 0 !== options ? options.cwd : void 0;
+    const silent = void 0 !== options && true === options.silent;
+    debug(`Running: ${command} ${args.join(" ")}`);
+    const child2 = spawn2(command, args, {
+      cwd,
+      windowsHide: true
+    });
+    let stdout = "";
+    let stderr = "";
+    child2.stdout.on("data", function onStdoutData(chunk) {
+      const text = chunk.toString();
+      stdout = stdout + text;
+      if (false === silent) {
+        process.stdout.write(text);
+      }
+    });
+    child2.stderr.on("data", function onStderrData(chunk) {
+      const text = chunk.toString();
+      stderr = stderr + text;
+      if (false === silent) {
+        process.stderr.write(text);
+      }
+    });
+    child2.on("error", function onChildError(error2) {
+      reject(error2);
+    });
+    child2.on("close", function onChildClose(code) {
+      if (0 === code) {
+        resolve4(stdout.trim());
+        return;
+      }
+      reject(new Error(`${command} failed with exit code ${code}. ${stderr.trim()}`));
+    });
+  }
+  return new Promise(runProcessPromise);
 }
 async function downloadFileFromUrlsWithRetries(urls, outputPath, attempts) {
   let lastError = void 0;
@@ -67689,11 +67934,11 @@ async function downloadFile(urlText, outputPath, redirectCount) {
   if (maxRedirects < redirectCount) {
     throw new Error(`Too many redirects while downloading '${urlText}'.`);
   }
-  mkdirSync(path12.dirname(outputPath), { recursive: true });
+  mkdirSync(path13.dirname(outputPath), { recursive: true });
   const url2 = new URL(urlText);
   const tmpPath = `${outputPath}.tmp`;
   rmSync(tmpPath, { force: true });
-  function downloadFilePromise(resolve3, reject) {
+  function downloadFilePromise(resolve4, reject) {
     function onResponse(response) {
       let status = 0;
       if (void 0 !== response.statusCode) {
@@ -67703,7 +67948,7 @@ async function downloadFile(urlText, outputPath, redirectCount) {
       if (300 <= status && 400 > status && void 0 !== location) {
         response.resume();
         const nextUrl = new URL(location, url2).toString();
-        downloadFile(nextUrl, outputPath, redirectCount + 1).then(resolve3, reject);
+        downloadFile(nextUrl, outputPath, redirectCount + 1).then(resolve4, reject);
         return;
       }
       if (200 > status || 300 <= status) {
@@ -67711,7 +67956,7 @@ async function downloadFile(urlText, outputPath, redirectCount) {
         reject(new Error(`Download failed with HTTP ${status}: ${urlText}`));
         return;
       }
-      writeResponseToFile(response, tmpPath, outputPath, resolve3, reject);
+      writeResponseToFile(response, tmpPath, outputPath, resolve4, reject);
     }
     const client = "https:" === url2.protocol ? https3 : http3;
     const request = client.get(url2, onResponse);
@@ -67725,13 +67970,13 @@ async function downloadFile(urlText, outputPath, redirectCount) {
   }
   await new Promise(downloadFilePromise);
 }
-function writeResponseToFile(response, tmpPath, outputPath, resolve3, reject) {
+function writeResponseToFile(response, tmpPath, outputPath, resolve4, reject) {
   const file = createWriteStream2(tmpPath);
   response.pipe(file);
   file.on("finish", function onFileFinish() {
     function onFileClosed() {
       renameSync(tmpPath, outputPath);
-      resolve3();
+      resolve4();
     }
     file.close(onFileClosed);
   });
@@ -67740,111 +67985,34 @@ function writeResponseToFile(response, tmpPath, outputPath, resolve3, reject) {
     reject(error2);
   });
 }
-function sleep2(milliseconds) {
-  function sleepPromise(resolve3) {
-    setTimeout(resolve3, milliseconds);
-  }
-  return new Promise(sleepPromise);
+async function runMsiExtraction(msiPath, targetRoot, logPath) {
+  await runProcess("msiexec.exe", [
+    "/a",
+    msiPath,
+    "/qn",
+    "/norestart",
+    `TARGETDIR=${targetRoot}`,
+    "/l*v",
+    logPath
+  ]);
 }
-function formatError2(error2) {
-  if (error2 instanceof Error) {
-    return error2.message;
-  }
-  return String(error2);
-}
-function errorFromUnknown(error2) {
-  if (error2 instanceof Error) {
-    return error2;
-  }
-  return new Error(String(error2));
-}
-
-// src/files.ts
-import { existsSync as existsSync5, readdirSync, statSync as statSync2 } from "node:fs";
-import * as path14 from "node:path";
-
-// src/paths.ts
-import * as os8 from "node:os";
-import * as path13 from "node:path";
-import { fileURLToPath as fileURLToPath2 } from "node:url";
-function actionRoot() {
-  const bundledEntry = fileURLToPath2(import.meta.url);
-  const distDirectory = path13.dirname(bundledEntry);
-  return path13.dirname(distDirectory);
-}
-function cmakeModuleDir() {
-  return path13.join(actionRoot(), "cmake");
-}
-function toolchainFile() {
-  return path13.join(cmakeModuleDir(), "wdk7.cmake");
-}
-function ddkbuildCmd() {
-  return path13.join(actionRoot(), "ddkbuild.cmd");
-}
-function expandEnvironment(value) {
-  return value.replace(/%([^%]+)%/g, replaceEnvironmentToken);
-}
-function fullPath(value) {
-  if ("" === value.trim()) {
-    return "";
-  }
-  return path13.resolve(expandEnvironment(value));
-}
-function targetBins(root) {
-  return [
-    path13.join(root, "bin", "x86", "x86"),
-    path13.join(root, "bin", "x86", "amd64")
-  ];
-}
-function hostBin(root) {
-  return path13.join(root, "bin", "x86");
-}
-function defaultCacheRoot() {
-  const runnerToolCache = process.env.RUNNER_TOOL_CACHE;
-  const localAppData = process.env.LOCALAPPDATA;
-  if (void 0 !== runnerToolCache && "" !== runnerToolCache) {
-    return path13.join(runnerToolCache, "wdk7");
-  }
-  if (void 0 !== localAppData && "" !== localAppData) {
-    return path13.join(localAppData, "actions-tool-cache", "wdk7");
-  }
-  return path13.join(os8.tmpdir(), "actions-tool-cache", "wdk7");
-}
-function replaceEnvironmentToken(_match, name) {
-  const replacement = process.env[name];
-  if (void 0 === replacement) {
-    return "";
-  }
-  return replacement;
-}
-
-// src/files.ts
-function listFilesUnder(root, predicate, maxDepth = 10) {
-  const resolvedRoot = fullPath(root);
-  if ("" === resolvedRoot || false === existsSync5(resolvedRoot)) {
-    return [];
-  }
+function listWdkMsiFiles(mediaRoot) {
   const result = [];
-  const stack = [{ dir: resolvedRoot, depth: 0 }];
-  while (0 < stack.length) {
-    const current = stack.pop();
-    if (void 0 === current) {
-      continue;
+  const entries = readdirSync(mediaRoot);
+  for (const entry of entries) {
+    if (true === entry.toLowerCase().endsWith(".msi")) {
+      result.push(path13.join(mediaRoot, entry));
     }
-    const entries = readDirectoryEntries(current.dir);
-    for (const entry of entries) {
-      const entryPath = path14.join(current.dir, entry);
-      const stats = readStats(entryPath);
-      if (void 0 === stats) {
-        continue;
-      }
-      if (true === stats.isDirectory()) {
-        if (current.depth < maxDepth) {
-          stack.push({ dir: entryPath, depth: current.depth + 1 });
-        }
-      } else if (true === predicate(entryPath)) {
-        result.push(entryPath);
-      }
+  }
+  return result;
+}
+function lastNonEmptyLine(output) {
+  let result = "";
+  const lines = output.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if ("" !== trimmed) {
+      result = trimmed;
     }
   }
   return result;
@@ -67863,156 +68031,23 @@ function readStats(filePath) {
     return void 0;
   }
 }
-
-// src/iso.ts
-import { existsSync as existsSync6, mkdirSync as mkdirSync2, readdirSync as readdirSync2 } from "node:fs";
-import * as path15 from "node:path";
-
-// src/process.ts
-import { spawn as spawn2 } from "node:child_process";
-function runProcess(command, args, options) {
-  function runProcessPromise(resolve3, reject) {
-    const cwd = void 0 !== options ? options.cwd : void 0;
-    const silent = void 0 !== options && true === options.silent;
-    debug(`Running: ${command} ${args.join(" ")}`);
-    const child2 = spawn2(command, args, {
-      cwd,
-      windowsHide: true
-    });
-    let stdout = "";
-    let stderr = "";
-    child2.stdout.on("data", function onStdoutData(chunk) {
-      const text = chunk.toString();
-      stdout = stdout + text;
-      if (false === silent) {
-        process.stdout.write(text);
-      }
-    });
-    child2.stderr.on("data", function onStderrData(chunk) {
-      const text = chunk.toString();
-      stderr = stderr + text;
-      if (false === silent) {
-        process.stderr.write(text);
-      }
-    });
-    child2.on("error", function onChildError(error2) {
-      reject(error2);
-    });
-    child2.on("close", function onChildClose(code) {
-      if (0 === code) {
-        resolve3(stdout.trim());
-        return;
-      }
-      reject(new Error(`${command} failed with exit code ${code}. ${stderr.trim()}`));
-    });
+function sleep2(milliseconds) {
+  function sleepPromise(resolve4) {
+    setTimeout(resolve4, milliseconds);
   }
-  return new Promise(runProcessPromise);
+  return new Promise(sleepPromise);
 }
-
-// src/iso.ts
-async function mountIso(isoPath) {
-  const script = path15.join(actionRoot(), "scripts", "mount-iso.ps1");
-  const output = await runProcess("powershell.exe", [
-    "-NoProfile",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
-    script,
-    "-ImagePath",
-    isoPath
-  ], { silent: true });
-  const drive = lastNonEmptyLine(output);
-  if ("" === drive) {
-    throw new Error("Mount-DiskImage did not return a drive letter.");
-  }
-  return drive.replace(":", "");
-}
-async function dismountIso(isoPath) {
-  const script = path15.join(actionRoot(), "scripts", "dismount-iso.ps1");
-  await runProcess("powershell.exe", [
-    "-NoProfile",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
-    script,
-    "-ImagePath",
-    isoPath
-  ], { silent: true });
-}
-async function extractMsi(msiPath, targetRoot, logRoot) {
-  const baseName = path15.basename(msiPath, path15.extname(msiPath));
-  const logPath = path15.join(logRoot, `${baseName}.log`);
-  try {
-    info(`Extracting ${path15.basename(msiPath)} to ${targetRoot}`);
-    await runMsiExtraction(msiPath, targetRoot, logPath);
-    return true;
-  } catch (error2) {
-    info(`Skipping ${path15.basename(msiPath)}: ${formatError3(error2)}`);
-    return false;
-  }
-}
-async function installWdk7FromIso(isoPath, targetRoot) {
-  info(`Mounting WDK7 ISO: ${isoPath}`);
-  const drive = await mountIso(isoPath);
-  try {
-    const mediaRoot = `${drive}:\\WDK`;
-    if (false === existsSync6(mediaRoot)) {
-      throw new Error(`Mounted ISO does not contain a WDK directory: ${mediaRoot}`);
-    }
-    mkdirSync2(targetRoot, { recursive: true });
-    const logRoot = path15.join(targetRoot, "_install_logs");
-    mkdirSync2(logRoot, { recursive: true });
-    const msiFiles = listWdkMsiFiles(mediaRoot);
-    if (0 === msiFiles.length) {
-      throw new Error(`No WDK MSI packages found under '${mediaRoot}'.`);
-    }
-    for (const msiPath of msiFiles) {
-      const baseName = path15.basename(msiPath, path15.extname(msiPath));
-      const logPath = path15.join(logRoot, `${baseName}.log`);
-      info(`Extracting ${path15.basename(msiPath)}`);
-      await runMsiExtraction(msiPath, targetRoot, logPath);
-    }
-  } finally {
-    await dismountIso(isoPath);
-  }
-}
-async function runMsiExtraction(msiPath, targetRoot, logPath) {
-  await runProcess("msiexec.exe", [
-    "/a",
-    msiPath,
-    "/qn",
-    "/norestart",
-    `TARGETDIR=${targetRoot}`,
-    "/l*v",
-    logPath
-  ]);
-}
-function listWdkMsiFiles(mediaRoot) {
-  const result = [];
-  const entries = readdirSync2(mediaRoot);
-  for (const entry of entries) {
-    if (true === entry.toLowerCase().endsWith(".msi")) {
-      result.push(path15.join(mediaRoot, entry));
-    }
-  }
-  return result;
-}
-function lastNonEmptyLine(output) {
-  let result = "";
-  const lines = output.split(/\r?\n/);
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if ("" !== trimmed) {
-      result = trimmed;
-    }
-  }
-  return result;
-}
-function formatError3(error2) {
+function formatError2(error2) {
   if (error2 instanceof Error) {
     return error2.message;
   }
   return String(error2);
+}
+function errorFromUnknown(error2) {
+  if (error2 instanceof Error) {
+    return error2;
+  }
+  return new Error(String(error2));
 }
 
 // src/debuggers.ts
@@ -68054,20 +68089,20 @@ async function prepareDebuggersSdk(wdkRoot, cacheRoot, downloadUrls) {
   };
 }
 function hasDbgEngInclude(includeDir) {
-  return existsSync7(path16.join(includeDir, "DbgEng.h"));
+  return existsSync5(path14.join(includeDir, "DbgEng.h"));
 }
 function hasDbgEngLibraries(libraryDir) {
-  return existsSync7(path16.join(libraryDir, "dbgeng.lib")) && existsSync7(path16.join(libraryDir, "dbghelp.lib"));
+  return existsSync5(path14.join(libraryDir, "dbgeng.lib")) && existsSync5(path14.join(libraryDir, "dbghelp.lib"));
 }
 function debuggerBin(root, arch2) {
   const candidates = [
-    path16.join(root, arch2),
-    path16.join(root, "Debuggers", arch2),
-    path16.join(root, "Debugging Tools for Windows", arch2),
-    path16.join(root, `Debugging Tools for Windows (${arch2})`)
+    path14.join(root, arch2),
+    path14.join(root, "Debuggers", arch2),
+    path14.join(root, "Debugging Tools for Windows", arch2),
+    path14.join(root, `Debugging Tools for Windows (${arch2})`)
   ];
   for (const candidate of candidates) {
-    if (true === existsSync7(candidate)) {
+    if (true === existsSync5(candidate)) {
       return candidate;
     }
   }
@@ -68095,7 +68130,7 @@ function createDebuggersSdk(root, includeDir, libI386, libAmd64) {
 }
 function findDbgEngSdkInKnownLayouts(root) {
   const resolved = fullPath(root);
-  if ("" === resolved || false === existsSync7(resolved)) {
+  if ("" === resolved || false === existsSync5(resolved)) {
     return void 0;
   }
   const layouts = knownLayouts(resolved);
@@ -68131,7 +68166,7 @@ function findDbgEngSdkUnder(root) {
     return void 0;
   }
   for (const includeFile of includeFiles) {
-    const includeDir = path16.dirname(includeFile);
+    const includeDir = path14.dirname(includeFile);
     const debuggerRoot = debuggerRootFromIncludeDir(includeDir);
     const sdk = createDebuggersSdk(debuggerRoot, includeDir, i386Lib, amd64Lib);
     if (void 0 !== sdk) {
@@ -68153,12 +68188,12 @@ async function installDebuggersFromIso(isoPath, wdkRoot, cacheRoot) {
     let changed = false;
     const targetRoots = uniqueStrings([
       wdkRoot,
-      path16.join(cacheRoot, "debuggers")
+      path14.join(cacheRoot, "debuggers")
     ]);
     for (const targetRoot of targetRoots) {
-      mkdirSync3(targetRoot, { recursive: true });
-      const logRoot = path16.join(targetRoot, "_debuggers_install_logs");
-      mkdirSync3(logRoot, { recursive: true });
+      mkdirSync2(targetRoot, { recursive: true });
+      const logRoot = path14.join(targetRoot, "_debuggers_install_logs");
+      mkdirSync2(logRoot, { recursive: true });
       for (const msiPath of msiFiles) {
         const extracted = await extractMsi(msiPath, targetRoot, logRoot);
         if (true === extracted) {
@@ -68177,34 +68212,34 @@ async function installDebuggersFromIso(isoPath, wdkRoot, cacheRoot) {
 function knownLayouts(resolved) {
   return [
     {
-      root: path16.join(resolved, "Debuggers"),
-      includeDir: path16.join(resolved, "Debuggers", "sdk", "inc"),
-      libI386: path16.join(resolved, "Debuggers", "sdk", "lib", "i386"),
-      libAmd64: path16.join(resolved, "Debuggers", "sdk", "lib", "amd64")
+      root: path14.join(resolved, "Debuggers"),
+      includeDir: path14.join(resolved, "Debuggers", "sdk", "inc"),
+      libI386: path14.join(resolved, "Debuggers", "sdk", "lib", "i386"),
+      libAmd64: path14.join(resolved, "Debuggers", "sdk", "lib", "amd64")
     },
     {
       root: resolved,
-      includeDir: path16.join(resolved, "sdk", "inc"),
-      libI386: path16.join(resolved, "sdk", "lib", "i386"),
-      libAmd64: path16.join(resolved, "sdk", "lib", "amd64")
+      includeDir: path14.join(resolved, "sdk", "inc"),
+      libI386: path14.join(resolved, "sdk", "lib", "i386"),
+      libAmd64: path14.join(resolved, "sdk", "lib", "amd64")
     },
     {
-      root: path16.join(resolved, "Debuggers"),
-      includeDir: path16.join(resolved, "Debuggers", "inc"),
-      libI386: path16.join(resolved, "Debuggers", "lib", "x86"),
-      libAmd64: path16.join(resolved, "Debuggers", "lib", "x64")
-    },
-    {
-      root: resolved,
-      includeDir: path16.join(resolved, "inc"),
-      libI386: path16.join(resolved, "lib", "x86"),
-      libAmd64: path16.join(resolved, "lib", "x64")
+      root: path14.join(resolved, "Debuggers"),
+      includeDir: path14.join(resolved, "Debuggers", "inc"),
+      libI386: path14.join(resolved, "Debuggers", "lib", "x86"),
+      libAmd64: path14.join(resolved, "Debuggers", "lib", "x64")
     },
     {
       root: resolved,
-      includeDir: path16.join(resolved, "Include"),
-      libI386: path16.join(resolved, "Lib"),
-      libAmd64: path16.join(resolved, "Lib", "x64")
+      includeDir: path14.join(resolved, "inc"),
+      libI386: path14.join(resolved, "lib", "x86"),
+      libAmd64: path14.join(resolved, "lib", "x64")
+    },
+    {
+      root: resolved,
+      includeDir: path14.join(resolved, "Include"),
+      libI386: path14.join(resolved, "Lib"),
+      libAmd64: path14.join(resolved, "Lib", "x64")
     }
   ];
 }
@@ -68215,7 +68250,7 @@ function findDbgEngLibraryDirs(root) {
   const files = listFilesUnder(root, isDbgEngLibrary);
   const dirs = [];
   for (const filePath of files) {
-    const dir = path16.dirname(filePath);
+    const dir = path14.dirname(filePath);
     if (true === hasDbgEngLibraries(dir)) {
       dirs.push(dir);
     }
@@ -68244,9 +68279,9 @@ function findI386Library(libDirs) {
   return void 0;
 }
 function debuggerRootFromIncludeDir(includeDir) {
-  let debuggerRoot = path16.dirname(includeDir);
-  if ("sdk" === path16.basename(debuggerRoot).toLowerCase()) {
-    debuggerRoot = path16.dirname(debuggerRoot);
+  let debuggerRoot = path14.dirname(includeDir);
+  if ("sdk" === path14.basename(debuggerRoot).toLowerCase()) {
+    debuggerRoot = path14.dirname(debuggerRoot);
   }
   return debuggerRoot;
 }
@@ -68254,14 +68289,14 @@ function findDebuggersMsiFiles(mediaRoot) {
   return listFilesUnder(mediaRoot, isDebuggersMsiFile);
 }
 function isDbgEngHeader(filePath) {
-  return "dbgeng.h" === path16.basename(filePath).toLowerCase();
+  return "dbgeng.h" === path14.basename(filePath).toLowerCase();
 }
 function isDbgEngLibrary(filePath) {
-  return "dbgeng.lib" === path16.basename(filePath).toLowerCase();
+  return "dbgeng.lib" === path14.basename(filePath).toLowerCase();
 }
 function isDebuggersMsiFile(filePath) {
   const lower = filePath.toLowerCase();
-  const baseName = path16.basename(lower);
+  const baseName = path14.basename(lower);
   if (false === baseName.endsWith(".msi")) {
     return false;
   }
@@ -68280,72 +68315,9 @@ function containsArchSegment(value, archNames) {
   return false;
 }
 
-// src/outputs.ts
-function publishStaticOutputs() {
-  setOutput("cmake-module-dir", cmakeModuleDir());
-  setOutput("toolchain-file", toolchainFile());
-  setOutput("ddkbuild-cmd", ddkbuildCmd());
-  setOutput("cmake-generator", cmakeGenerator);
-}
-function publishWdk7(root, source, cacheHit, sdk) {
-  const resolvedRoot = fullPath(root);
-  const host = hostBin(resolvedRoot);
-  exportVariable("WDK7_ROOT", resolvedRoot);
-  exportVariable("W7BASE", resolvedRoot);
-  exportVariable("WDK7_HOST_BIN", host);
-  exportVariable("WDK7_CMAKE_MODULE_DIR", cmakeModuleDir());
-  exportVariable("WDK7_CMAKE_TOOLCHAIN_FILE", toolchainFile());
-  exportVariable("WDK7_DDKBUILD_CMD", ddkbuildCmd());
-  exportVariable("WDK7_CMAKE_GENERATOR", cmakeGenerator);
-  addPath(host);
-  setOutput("found", "true");
-  setOutput("root", resolvedRoot);
-  setOutput("source", source);
-  setOutput("cache-hit", true === cacheHit ? "true" : "false");
-  publishDebuggersSdk(sdk);
-  info(`WDK7 ready: root='${resolvedRoot}' source='${source}'`);
-}
-function publishNotFound(reason) {
-  info(reason);
-  publishStaticOutputs();
-  setOutput("found", "false");
-  setOutput("root", "");
-  setOutput("source", "none");
-  setOutput("cache-hit", "false");
-  publishDebuggersSdk(void 0);
-}
-function publishDebuggersSdk(sdk) {
-  if (void 0 === sdk) {
-    setOutput("dbgeng-found", "false");
-    setOutput("debuggers-root", "");
-    setOutput("dbgeng-include-dir", "");
-    setOutput("dbgeng-lib-i386", "");
-    setOutput("dbgeng-lib-amd64", "");
-    setOutput("debuggers-bin-x86", "");
-    setOutput("debuggers-bin-x64", "");
-    return;
-  }
-  exportVariable("WDK7_DEBUGGERS_ROOT", sdk.root);
-  exportVariable("WDK7_DBGENG_INCLUDE_DIR", sdk.includeDir);
-  exportVariable("WDK7_DBGENG_LIB_I386", sdk.libI386);
-  exportVariable("WDK7_DBGENG_LIB_AMD64", sdk.libAmd64);
-  exportVariable("WDK7_DEBUGGERS_BIN_X86", sdk.binX86);
-  exportVariable("WDK7_DEBUGGERS_BIN_X64", sdk.binX64);
-  setOutput("dbgeng-found", "true");
-  setOutput("debuggers-root", sdk.root);
-  setOutput("dbgeng-include-dir", sdk.includeDir);
-  setOutput("dbgeng-lib-i386", sdk.libI386);
-  setOutput("dbgeng-lib-amd64", sdk.libAmd64);
-  setOutput("debuggers-bin-x86", sdk.binX86);
-  setOutput("debuggers-bin-x64", sdk.binX64);
-  info(
-    `WDK7 Debuggers SDK ready: root='${sdk.root}' include='${sdk.includeDir}' lib-i386='${sdk.libI386}' lib-amd64='${sdk.libAmd64}'`
-  );
-}
-
 // src/wdk.ts
-import { existsSync as existsSync8, readdirSync as readdirSync3, statSync as statSync3 } from "node:fs";
-import * as path17 from "node:path";
+import { existsSync as existsSync6, readdirSync as readdirSync2, statSync as statSync3 } from "node:fs";
+import * as path15 from "node:path";
 function isWdk7Root(root) {
   if ("" === root.trim()) {
     return false;
@@ -68353,7 +68325,7 @@ function isWdk7Root(root) {
   const resolved = fullPath(root);
   const required = requiredWdk7Files(resolved);
   for (const requiredPath of required) {
-    if (false === existsSync8(requiredPath)) {
+    if (false === existsSync6(requiredPath)) {
       return false;
     }
   }
@@ -68378,7 +68350,7 @@ function findWdk7Root(requestedRoot, cacheRoot, includeCache) {
 }
 function findWdk7RootUnder(basePath) {
   const resolvedBase = fullPath(basePath);
-  if ("" === resolvedBase || false === existsSync8(resolvedBase)) {
+  if ("" === resolvedBase || false === existsSync6(resolvedBase)) {
     return void 0;
   }
   if (true === isWdk7Root(resolvedBase)) {
@@ -68392,7 +68364,7 @@ function findWdk7RootUnder(basePath) {
     }
     const entries = readDirectoryEntries2(current);
     for (const entry of entries) {
-      const entryPath = path17.join(current, entry);
+      const entryPath = path15.join(current, entry);
       const stats = readStats2(entryPath);
       if (void 0 === stats) {
         continue;
@@ -68400,7 +68372,7 @@ function findWdk7RootUnder(basePath) {
       if (true === stats.isDirectory()) {
         stack.push(entryPath);
       } else if ("setenv.bat" === entry.toLowerCase()) {
-        const root = path17.dirname(path17.dirname(entryPath));
+        const root = path15.dirname(path15.dirname(entryPath));
         if (true === isWdk7Root(root)) {
           return fullPath(root);
         }
@@ -68421,23 +68393,23 @@ function findCachedWdk7Root(cacheRoot) {
 }
 function requiredWdk7Files(root) {
   const required = [
-    path17.join(root, "bin", "setenv.bat"),
-    path17.join(root, "inc", "api"),
-    path17.join(root, "inc", "ddk"),
-    path17.join(hostBin(root), "nmake.exe"),
-    path17.join(hostBin(root), "rc.exe")
+    path15.join(root, "bin", "setenv.bat"),
+    path15.join(root, "inc", "api"),
+    path15.join(root, "inc", "ddk"),
+    path15.join(hostBin(root), "nmake.exe"),
+    path15.join(hostBin(root), "rc.exe")
   ];
   for (const bin of targetBins(root)) {
-    required.push(path17.join(bin, "cl.exe"));
-    required.push(path17.join(bin, "link.exe"));
+    required.push(path15.join(bin, "cl.exe"));
+    required.push(path15.join(bin, "link.exe"));
   }
   return required;
 }
 function addCacheCandidates(candidates, cacheRoot) {
-  addCandidate(candidates, path17.join(cacheRoot, "7600.16385.1"), "cache");
-  addCandidate(candidates, path17.join(cacheRoot, "7600.16385.win7_wdk.100208-1538"), "cache");
-  addCandidate(candidates, path17.join(cacheRoot, "wdk7", "7600.16385.1"), "cache");
-  addCandidate(candidates, path17.join(cacheRoot, "wdk7", "7600.16385.win7_wdk.100208-1538"), "cache");
+  addCandidate(candidates, path15.join(cacheRoot, "7600.16385.1"), "cache");
+  addCandidate(candidates, path15.join(cacheRoot, "7600.16385.win7_wdk.100208-1538"), "cache");
+  addCandidate(candidates, path15.join(cacheRoot, "wdk7", "7600.16385.1"), "cache");
+  addCandidate(candidates, path15.join(cacheRoot, "wdk7", "7600.16385.win7_wdk.100208-1538"), "cache");
 }
 function addCandidate(candidates, root, source) {
   if (void 0 === root || "" === root.trim()) {
@@ -68457,7 +68429,7 @@ function addCandidate(candidates, root, source) {
 }
 function readDirectoryEntries2(directory) {
   try {
-    return readdirSync3(directory);
+    return readdirSync2(directory);
   } catch {
     return [];
   }
@@ -68480,7 +68452,7 @@ async function run() {
   const cacheKey = cacheKeyForDebugger(inputs.debugger);
   const restoreKeys = restoreKeysForDebugger(inputs.debugger);
   const cache = new CacheSession(cacheRoot, cacheKey, restoreKeys);
-  mkdirSync4(cacheRoot, { recursive: true });
+  mkdirSync3(cacheRoot, { recursive: true });
   publishStaticOutputs();
   const installed = findWdk7Root(inputs.root, cacheRoot, false);
   if (void 0 !== installed) {
@@ -68524,7 +68496,7 @@ async function downloadAndUseRoot(inputs, cache, cacheRoot) {
     return;
   }
   const isoPath = await ensureWdk7Iso(cacheRoot, inputs.downloadUrls);
-  const targetRoot = path18.join(cacheRoot, "7600.16385.1");
+  const targetRoot = path16.join(cacheRoot, "7600.16385.1");
   if (false === isWdk7Root(targetRoot)) {
     await installWdk7FromIso(isoPath, targetRoot);
   }

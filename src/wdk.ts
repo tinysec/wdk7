@@ -1,8 +1,7 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import * as path from "node:path";
 
-import { fullPath, hostBin, targetBins } from "./paths.js";
-import type { WdkRoot } from "./types.js";
+import { fullPath, hostBin, targetBins, type WdkRoot } from "./action.js";
 
 /**
  * isWdk7Root validates the files required to compile both x86 and amd64 WDK7
