@@ -23,7 +23,6 @@ interface Candidate {
 interface Inputs {
   arch: WdkArch;
   root: string;
-  download: boolean;
   downloadRetries: number;
   downloadUrl: string;
   sha256: string;
@@ -92,7 +91,6 @@ function readInputs(): Inputs {
   return {
     arch: normalizeArch(core.getInput("arch") || "amd64"),
     root: core.getInput("root"),
-    download: parseBool(core.getInput("download") || "true"),
     downloadRetries: parsePositiveInteger(core.getInput("download-retries"), 3),
     downloadUrl: core.getInput("download-url") || defaultDownloadUrl,
     sha256: core.getInput("sha256"),
@@ -573,11 +571,6 @@ async function run(): Promise<void> {
       found.source === "cache" || Boolean(restoredCacheKey),
       inputs.cacheKey
     );
-    return;
-  }
-
-  if (!inputs.download) {
-    publishNotFound(inputs.arch, "WDK7 was not found and download=false.", inputs.cacheKey);
     return;
   }
 

@@ -2,7 +2,6 @@
 param(
     [string]$Arch = "amd64",
     [string]$Root = "",
-    [string]$Download = "false",
     [string]$DownloadRetries = "3",
     [string]$DownloadUrl = "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO",
     [string]$Sha256 = "",
@@ -31,7 +30,6 @@ New-Item -ItemType File -Force -Path $env:GITHUB_OUTPUT, $env:GITHUB_ENV, $env:G
 
 Set-Item -Path "Env:INPUT_ARCH" -Value $Arch
 Set-Item -Path "Env:INPUT_ROOT" -Value $Root
-Set-Item -Path "Env:INPUT_DOWNLOAD" -Value $Download
 Set-Item -Path "Env:INPUT_DOWNLOAD-RETRIES" -Value $DownloadRetries
 Set-Item -Path "Env:INPUT_DOWNLOAD-URL" -Value $DownloadUrl
 Set-Item -Path "Env:INPUT_SHA256" -Value $Sha256

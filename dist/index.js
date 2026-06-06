@@ -67515,7 +67515,6 @@ function readInputs() {
   return {
     arch: normalizeArch(getInput("arch") || "amd64"),
     root: getInput("root"),
-    download: parseBool(getInput("download") || "true"),
     downloadRetries: parsePositiveInteger(getInput("download-retries"), 3),
     downloadUrl: getInput("download-url") || defaultDownloadUrl,
     sha256: getInput("sha256"),
@@ -67915,10 +67914,6 @@ async function run() {
       found.source === "cache" || Boolean(restoredCacheKey),
       inputs.cacheKey
     );
-    return;
-  }
-  if (!inputs.download) {
-    publishNotFound(inputs.arch, "WDK7 was not found and download=false.", inputs.cacheKey);
     return;
   }
   if (!inputs.downloadUrl.trim()) {

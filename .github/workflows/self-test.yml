@@ -12,16 +12,43 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch:
-          - amd64
-          - i386
+        include:
+          - arch: amd64
+            bin: amd64
+          - arch: i386
+            bin: x86
     steps:
+      - name: create fake wdk7
+        id: fake
+        shell: powershell
+        run: |
+          $root = Join-Path $env:RUNNER_TEMP "fake-wdk7"
+          $targetBin = Join-Path $root "bin\x86\${{ matrix.bin }}"
+          $hostBin = Join-Path $root "bin\x86"
+          New-Item -ItemType Directory -Force -Path `
+            (Join-Path $root "inc\api"), `
+            (Join-Path $root "inc\ddk"), `
+            $targetBin, `
+            $hostBin | Out-Null
+
+          foreach ($file in @(
+            (Join-Path $root "bin\setenv.bat"),
+            (Join-Path $targetBin "cl.exe"),
+            (Join-Path $targetBin "link.exe"),
+            (Join-Path $hostBin "nmake.exe"),
+            (Join-Path $hostBin "rc.exe")
+          )) {
+            New-Item -ItemType File -Force -Path $file | Out-Null
+          }
+
+          "root=$root" >> $env:GITHUB_OUTPUT
+
       - name: setup wdk7
         id: wdk7
         uses: tinysec/wdk7@master
         with:
           arch: ${{ matrix.arch }}
-          download: "false"
+          root: ${{ steps.fake.outputs.root }}
           cache: "false"
 
       - name: show outputs

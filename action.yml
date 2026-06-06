@@ -8,9 +8,6 @@ inputs:
   root:
     description: Explicit WDK7 root. Overrides environment probing when valid.
     default: ""
-  download:
-    description: Download and extract WDK7 when it cannot be found locally.
-    default: "true"
   download-retries:
     description: Number of download attempts before giving up.
     default: "3"

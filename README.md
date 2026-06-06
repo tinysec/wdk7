@@ -4,7 +4,7 @@
 Driver Kit 7.1 for CI jobs.
 
 It first detects an existing WDK7 tree, then reuses a local cache, and finally
-downloads and extracts the WDK7 ISO when requested.
+downloads and extracts the WDK7 ISO when it cannot find a usable tree.
 
 ## Usage
 
@@ -39,7 +39,6 @@ to CMake instead.
 
 - `arch`: target architecture, default `amd64`.
 - `root`: explicit WDK7 root.
-- `download`: download and extract WDK7 when not found, default `true`.
 - `download-retries`: download attempts before giving up, default `3`.
 - `download-url`: WDK7 ISO URL.
 - `sha256`: optional ISO SHA-256 checksum.
@@ -73,6 +72,10 @@ Detection order:
 4. default `C:\WinDDK\7600.16385.1`
 5. restored/local WDK7 cache
 6. download and extraction
+
+There is no "do not download" switch. If WDK7 is not found and `download-url`
+is set, the action downloads and prepares WDK7. To force a specific local tree,
+pass `root`.
 
 The default local cache root is:
 
@@ -126,8 +129,9 @@ The test script creates temporary `GITHUB_OUTPUT`, `GITHUB_ENV`, and
 `GITHUB_PATH` files, runs `dist/index.js`, and prints exactly what the action
 would export to later CI steps.
 
-The repository also contains `.github/workflows/self-test.yml`, which calls the
-published branch as `uses: tinysec/wdk7@master`.
+The repository also contains `.github/workflows/self-test.yml`, which creates a
+minimal fake WDK7 tree and calls the published branch as
+`uses: tinysec/wdk7@master`.
 
 ## Release
 
