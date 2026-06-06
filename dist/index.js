@@ -67463,8 +67463,8 @@ var defaultDownloadUrls = [
   "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
 ];
 var cmakeGenerator = "NMake Makefiles";
-var cacheKey = "wdk7-7600.16385.1";
-var restoreKeys = ["wdk7-"];
+var cacheKey = "wdk7-7600.16385.1-debuggers-v1";
+var restoreKeys = ["wdk7-7600.16385.1", "wdk7-"];
 var downloadRetries = 3;
 function readInputs() {
   const downloadUrls = splitDownloadUrls(getInput("download-url"));
@@ -67491,14 +67491,22 @@ function uniqueStrings(values) {
 function actionRoot() {
   return path12.dirname(path12.dirname(fileURLToPath2(import.meta.url)));
 }
+function cmakeModuleDir() {
+  return path12.join(actionRoot(), "cmake");
+}
 function toolchainFile() {
-  return path12.join(actionRoot(), "cmake", "wdk7.cmake");
+  return path12.join(cmakeModuleDir(), "wdk7.cmake");
+}
+function findDbgEngModule() {
+  return path12.join(cmakeModuleDir(), "FindDbgEng.cmake");
 }
 function ddkbuildCmd() {
   return path12.join(actionRoot(), "ddkbuild.cmd");
 }
 function publishStaticOutputs() {
+  setOutput("cmake-module-dir", cmakeModuleDir());
   setOutput("toolchain-file", toolchainFile());
+  setOutput("finddbgeng-module", findDbgEngModule());
   setOutput("ddkbuild-cmd", ddkbuildCmd());
   setOutput("cmake-generator", cmakeGenerator);
 }
@@ -67617,6 +67625,153 @@ function findWdk7RootUnder(basePath) {
 function findCachedWdk7Root(cacheRoot) {
   const root = findWdk7RootUnder(cacheRoot);
   return root ? { root, source: "cache" } : void 0;
+}
+function hasDbgEngInclude(includeDir) {
+  return existsSync4(path12.join(includeDir, "DbgEng.h"));
+}
+function hasDbgEngLibraries(libraryDir) {
+  return existsSync4(path12.join(libraryDir, "dbgeng.lib")) && existsSync4(path12.join(libraryDir, "dbghelp.lib"));
+}
+function debuggerBin(root, arch2) {
+  const candidates = [
+    path12.join(root, arch2),
+    path12.join(root, "Debuggers", arch2),
+    path12.join(root, "Debugging Tools for Windows", arch2),
+    path12.join(root, `Debugging Tools for Windows (${arch2})`)
+  ];
+  return candidates.find((candidate) => existsSync4(candidate)) ?? "";
+}
+function createDebuggersSdk(root, includeDir, libI386, libAmd64) {
+  if (!hasDbgEngInclude(includeDir) || !hasDbgEngLibraries(libI386) || !hasDbgEngLibraries(libAmd64)) {
+    return void 0;
+  }
+  const resolvedRoot = fullPath(root);
+  return {
+    root: resolvedRoot,
+    includeDir: fullPath(includeDir),
+    libI386: fullPath(libI386),
+    libAmd64: fullPath(libAmd64),
+    binX86: debuggerBin(resolvedRoot, "x86"),
+    binX64: debuggerBin(resolvedRoot, "x64")
+  };
+}
+function findDbgEngSdkInKnownLayouts(root) {
+  const resolved = fullPath(root);
+  if (!resolved || !existsSync4(resolved)) {
+    return void 0;
+  }
+  const layouts = [
+    {
+      root: path12.join(resolved, "Debuggers"),
+      includeDir: path12.join(resolved, "Debuggers", "sdk", "inc"),
+      libI386: path12.join(resolved, "Debuggers", "sdk", "lib", "i386"),
+      libAmd64: path12.join(resolved, "Debuggers", "sdk", "lib", "amd64")
+    },
+    {
+      root: resolved,
+      includeDir: path12.join(resolved, "sdk", "inc"),
+      libI386: path12.join(resolved, "sdk", "lib", "i386"),
+      libAmd64: path12.join(resolved, "sdk", "lib", "amd64")
+    },
+    {
+      root: path12.join(resolved, "Debuggers"),
+      includeDir: path12.join(resolved, "Debuggers", "inc"),
+      libI386: path12.join(resolved, "Debuggers", "lib", "x86"),
+      libAmd64: path12.join(resolved, "Debuggers", "lib", "x64")
+    },
+    {
+      root: resolved,
+      includeDir: path12.join(resolved, "inc"),
+      libI386: path12.join(resolved, "lib", "x86"),
+      libAmd64: path12.join(resolved, "lib", "x64")
+    },
+    {
+      root: resolved,
+      includeDir: path12.join(resolved, "Include"),
+      libI386: path12.join(resolved, "Lib"),
+      libAmd64: path12.join(resolved, "Lib", "x64")
+    }
+  ];
+  for (const layout of layouts) {
+    const sdk = createDebuggersSdk(layout.root, layout.includeDir, layout.libI386, layout.libAmd64);
+    if (sdk) {
+      return sdk;
+    }
+  }
+  return void 0;
+}
+function listFilesUnder(root, predicate, maxDepth = 10) {
+  const resolved = fullPath(root);
+  if (!resolved || !existsSync4(resolved)) {
+    return [];
+  }
+  const result = [];
+  const stack = [{ dir: resolved, depth: 0 }];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current) {
+      continue;
+    }
+    let entries;
+    try {
+      entries = readdirSync(current.dir);
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const entryPath = path12.join(current.dir, entry);
+      let stats;
+      try {
+        stats = statSync2(entryPath);
+      } catch {
+        continue;
+      }
+      if (stats.isDirectory()) {
+        if (current.depth < maxDepth) {
+          stack.push({ dir: entryPath, depth: current.depth + 1 });
+        }
+      } else if (predicate(entryPath)) {
+        result.push(entryPath);
+      }
+    }
+  }
+  return result;
+}
+function findDbgEngSdkUnder(root) {
+  const known = findDbgEngSdkInKnownLayouts(root);
+  if (known) {
+    return known;
+  }
+  const includeFiles = listFilesUnder(root, (filePath) => path12.basename(filePath).toLowerCase() === "dbgeng.h");
+  if (includeFiles.length === 0) {
+    return void 0;
+  }
+  const libDirs = uniqueStrings(
+    listFilesUnder(root, (filePath) => path12.basename(filePath).toLowerCase() === "dbgeng.lib").map((filePath) => path12.dirname(filePath)).filter(hasDbgEngLibraries)
+  );
+  if (libDirs.length === 0) {
+    return void 0;
+  }
+  const amd64Lib = libDirs.find((dir) => /[\\\/](amd64|x64)([\\\/]|$)/i.test(dir));
+  const i386Lib = libDirs.find((dir) => /[\\\/](i386|x86)([\\\/]|$)/i.test(dir) && !/[\\\/](amd64|x64)([\\\/]|$)/i.test(dir)) ?? libDirs.find((dir) => !/[\\\/](amd64|x64)([\\\/]|$)/i.test(dir));
+  if (!i386Lib || !amd64Lib) {
+    return void 0;
+  }
+  for (const includeFile of includeFiles) {
+    const includeDir = path12.dirname(includeFile);
+    let debuggerRoot = path12.dirname(includeDir);
+    if (path12.basename(debuggerRoot).toLowerCase() === "sdk") {
+      debuggerRoot = path12.dirname(debuggerRoot);
+    }
+    const sdk = createDebuggersSdk(debuggerRoot, includeDir, i386Lib, amd64Lib);
+    if (sdk) {
+      return sdk;
+    }
+  }
+  return void 0;
+}
+function findDbgEngSdk(wdkRoot, cacheRoot) {
+  return findDbgEngSdkUnder(wdkRoot) ?? findDbgEngSdkUnder(cacheRoot);
 }
 function runProcess(command, args, options) {
   return new Promise((resolve3, reject) => {
@@ -67740,6 +67895,16 @@ async function downloadFileFromUrlsWithRetries(urls, outputPath, attempts) {
   }
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
+async function ensureWdk7Iso(cacheRoot, urls) {
+  const isoPath = path12.join(cacheRoot, "GRMWDK_EN_7600_1.ISO");
+  if (existsSync4(isoPath)) {
+    info(`Using cached WDK7 ISO: ${isoPath}`);
+    return isoPath;
+  }
+  const downloadedUrl = await downloadFileFromUrlsWithRetries(urls, isoPath, downloadRetries);
+  info(`Downloaded WDK7 ISO from: ${downloadedUrl}`);
+  return isoPath;
+}
 async function mountIso(isoPath) {
   const script = path12.join(actionRoot(), "scripts", "mount-iso.ps1");
   const output = await runProcess("powershell.exe", [
@@ -67768,6 +67933,81 @@ async function dismountIso(isoPath) {
     "-ImagePath",
     isoPath
   ], { silent: true });
+}
+function findDebuggersMsiFiles(mediaRoot) {
+  return listFilesUnder(mediaRoot, (filePath) => {
+    const lower = filePath.toLowerCase();
+    const baseName = path12.basename(lower);
+    return baseName.endsWith(".msi") && (baseName.startsWith("dbg") || lower.includes("debuggingtools") || lower.includes("debuggers"));
+  });
+}
+async function extractMsi(msiPath, targetRoot, logRoot) {
+  const baseName = path12.basename(msiPath, path12.extname(msiPath));
+  const logPath = path12.join(logRoot, `${baseName}.log`);
+  try {
+    info(`Extracting ${path12.basename(msiPath)} to ${targetRoot}`);
+    await runProcess("msiexec.exe", [
+      "/a",
+      msiPath,
+      "/qn",
+      "/norestart",
+      `TARGETDIR=${targetRoot}`,
+      "/l*v",
+      logPath
+    ]);
+    return true;
+  } catch (error2) {
+    info(`Skipping ${path12.basename(msiPath)}: ${error2 instanceof Error ? error2.message : String(error2)}`);
+    return false;
+  }
+}
+async function installDebuggersFromIso(isoPath, wdkRoot, cacheRoot) {
+  info(`Mounting WDK7 ISO for Debugging Tools: ${isoPath}`);
+  const drive = await mountIso(isoPath);
+  try {
+    const mediaRoot = `${drive}:\\`;
+    const msiFiles = findDebuggersMsiFiles(mediaRoot);
+    if (msiFiles.length === 0) {
+      info("No Debugging Tools MSI packages were found in the WDK7 ISO.");
+      return false;
+    }
+    let changed = false;
+    const targetRoots = uniqueStrings([
+      wdkRoot,
+      path12.join(cacheRoot, "debuggers")
+    ]);
+    for (const targetRoot of targetRoots) {
+      mkdirSync(targetRoot, { recursive: true });
+      const logRoot = path12.join(targetRoot, "_debuggers_install_logs");
+      mkdirSync(logRoot, { recursive: true });
+      for (const msiPath of msiFiles) {
+        changed = await extractMsi(msiPath, targetRoot, logRoot) || changed;
+      }
+      if (findDbgEngSdk(wdkRoot, cacheRoot)) {
+        return changed;
+      }
+    }
+    return changed;
+  } finally {
+    await dismountIso(isoPath);
+  }
+}
+async function prepareDebuggersSdk(wdkRoot, cacheRoot, downloadUrls) {
+  let sdk = findDbgEngSdk(wdkRoot, cacheRoot);
+  if (sdk) {
+    return { sdk, cacheChanged: false };
+  }
+  if (downloadUrls.length === 0) {
+    info("WDK7 Debuggers SDK was not found and no download URLs are configured.");
+    return { cacheChanged: false };
+  }
+  const isoPath = await ensureWdk7Iso(cacheRoot, downloadUrls);
+  const changed = await installDebuggersFromIso(isoPath, wdkRoot, cacheRoot);
+  sdk = findDbgEngSdk(wdkRoot, cacheRoot);
+  if (!sdk) {
+    info("WDK7 Debuggers SDK was not found after Debugging Tools extraction.");
+  }
+  return { sdk, cacheChanged: changed };
 }
 async function installWdk7FromIso(isoPath, targetRoot) {
   info(`Mounting WDK7 ISO: ${isoPath}`);
@@ -67833,13 +68073,43 @@ async function saveActionCache(cacheRoot, cacheKey2) {
     warning(`WDK7 cache save skipped: ${error2 instanceof Error ? error2.message : String(error2)}`);
   }
 }
-function publishWdk7(root, source, cacheHit) {
+function publishDebuggersSdk(sdk) {
+  if (!sdk) {
+    setOutput("dbgeng-found", "false");
+    setOutput("debuggers-root", "");
+    setOutput("dbgeng-include-dir", "");
+    setOutput("dbgeng-lib-i386", "");
+    setOutput("dbgeng-lib-amd64", "");
+    setOutput("debuggers-bin-x86", "");
+    setOutput("debuggers-bin-x64", "");
+    return;
+  }
+  exportVariable("WDK7_DEBUGGERS_ROOT", sdk.root);
+  exportVariable("WDK7_DBGENG_INCLUDE_DIR", sdk.includeDir);
+  exportVariable("WDK7_DBGENG_LIB_I386", sdk.libI386);
+  exportVariable("WDK7_DBGENG_LIB_AMD64", sdk.libAmd64);
+  exportVariable("WDK7_DEBUGGERS_BIN_X86", sdk.binX86);
+  exportVariable("WDK7_DEBUGGERS_BIN_X64", sdk.binX64);
+  setOutput("dbgeng-found", "true");
+  setOutput("debuggers-root", sdk.root);
+  setOutput("dbgeng-include-dir", sdk.includeDir);
+  setOutput("dbgeng-lib-i386", sdk.libI386);
+  setOutput("dbgeng-lib-amd64", sdk.libAmd64);
+  setOutput("debuggers-bin-x86", sdk.binX86);
+  setOutput("debuggers-bin-x64", sdk.binX64);
+  info(
+    `WDK7 Debuggers SDK ready: root='${sdk.root}' include='${sdk.includeDir}' lib-i386='${sdk.libI386}' lib-amd64='${sdk.libAmd64}'`
+  );
+}
+function publishWdk7(root, source, cacheHit, sdk) {
   const resolvedRoot = fullPath(root);
   const host = hostBin(resolvedRoot);
   exportVariable("WDK7_ROOT", resolvedRoot);
   exportVariable("W7BASE", resolvedRoot);
   exportVariable("WDK7_HOST_BIN", host);
+  exportVariable("WDK7_CMAKE_MODULE_DIR", cmakeModuleDir());
   exportVariable("WDK7_CMAKE_TOOLCHAIN_FILE", toolchainFile());
+  exportVariable("WDK7_FINDDBGENG_CMAKE", findDbgEngModule());
   exportVariable("WDK7_DDKBUILD_CMD", ddkbuildCmd());
   exportVariable("WDK7_CMAKE_GENERATOR", cmakeGenerator);
   addPath(host);
@@ -67847,6 +68117,7 @@ function publishWdk7(root, source, cacheHit) {
   setOutput("root", resolvedRoot);
   setOutput("source", source);
   setOutput("cache-hit", cacheHit ? "true" : "false");
+  publishDebuggersSdk(sdk);
   info(`WDK7 ready: root='${resolvedRoot}' source='${source}'`);
 }
 function publishNotFound(reason) {
@@ -67856,6 +68127,7 @@ function publishNotFound(reason) {
   setOutput("root", "");
   setOutput("source", "none");
   setOutput("cache-hit", "false");
+  publishDebuggersSdk(void 0);
 }
 async function run() {
   if (process.platform !== "win32") {
@@ -67865,19 +68137,45 @@ async function run() {
   const cacheRoot = defaultCacheRoot();
   mkdirSync(cacheRoot, { recursive: true });
   publishStaticOutputs();
+  let restoredCacheKey;
+  let cacheRestoreAttempted = false;
+  const restoreCacheOnce = async () => {
+    if (!cacheRestoreAttempted) {
+      cacheRestoreAttempted = true;
+      restoredCacheKey = await restoreActionCache(cacheRoot, cacheKey, restoreKeys);
+    }
+  };
   const installed = findWdk7Root(inputs.root, cacheRoot, false);
   if (installed) {
-    publishWdk7(installed.root, installed.source, false);
+    let sdk = findDbgEngSdk(installed.root, cacheRoot);
+    let cacheChanged = false;
+    if (!sdk) {
+      await restoreCacheOnce();
+      sdk = findDbgEngSdk(installed.root, cacheRoot);
+    }
+    if (!sdk) {
+      const prepared2 = await prepareDebuggersSdk(installed.root, cacheRoot, inputs.downloadUrls);
+      sdk = prepared2.sdk;
+      cacheChanged = prepared2.cacheChanged;
+    }
+    if (cacheChanged && restoredCacheKey !== cacheKey) {
+      await saveActionCache(cacheRoot, cacheKey);
+    }
+    publishWdk7(installed.root, installed.source, Boolean(restoredCacheKey), sdk);
     return;
   }
-  let restoredCacheKey;
-  restoredCacheKey = await restoreActionCache(cacheRoot, cacheKey, restoreKeys);
+  await restoreCacheOnce();
   const found = findWdk7Root(inputs.root, cacheRoot, true) ?? findCachedWdk7Root(cacheRoot);
   if (found) {
+    const prepared2 = await prepareDebuggersSdk(found.root, cacheRoot, inputs.downloadUrls);
+    if (prepared2.cacheChanged && restoredCacheKey !== cacheKey) {
+      await saveActionCache(cacheRoot, cacheKey);
+    }
     publishWdk7(
       found.root,
       found.source,
-      found.source === "cache" || Boolean(restoredCacheKey)
+      found.source === "cache" || Boolean(restoredCacheKey),
+      prepared2.sdk
     );
     return;
   }
@@ -67885,13 +68183,7 @@ async function run() {
     publishNotFound("WDK7 was not found and no download URLs are configured.");
     return;
   }
-  const isoPath = path12.join(cacheRoot, "GRMWDK_EN_7600_1.ISO");
-  if (existsSync4(isoPath)) {
-    info(`Using cached WDK7 ISO: ${isoPath}`);
-  } else {
-    const downloadedUrl = await downloadFileFromUrlsWithRetries(inputs.downloadUrls, isoPath, downloadRetries);
-    info(`Downloaded WDK7 ISO from: ${downloadedUrl}`);
-  }
+  const isoPath = await ensureWdk7Iso(cacheRoot, inputs.downloadUrls);
   const targetRoot = path12.join(cacheRoot, "7600.16385.1");
   if (!isWdk7Root(targetRoot)) {
     await installWdk7FromIso(isoPath, targetRoot);
@@ -67900,10 +68192,11 @@ async function run() {
   if (!resolvedRoot) {
     throw new Error("WDK7 extraction completed, but no valid WDK7 root was found.");
   }
+  const prepared = await prepareDebuggersSdk(resolvedRoot, cacheRoot, inputs.downloadUrls);
   if (restoredCacheKey !== cacheKey) {
     await saveActionCache(cacheRoot, cacheKey);
   }
-  publishWdk7(resolvedRoot, "download", false);
+  publishWdk7(resolvedRoot, "download", false, prepared.sdk);
 }
 run().catch((error2) => {
   publishNotFound(`wdk7 failed: ${error2 instanceof Error ? error2.message : String(error2)}`);

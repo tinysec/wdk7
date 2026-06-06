@@ -23,12 +23,21 @@ Then use the resolved root in CMake:
   run: |
     cmake -S . -B build -G "${{ steps.wdk7.outputs.cmake-generator }}" ^
       -DCMAKE_TOOLCHAIN_FILE="${{ steps.wdk7.outputs.toolchain-file }}" ^
+      -DCMAKE_MODULE_PATH="${{ steps.wdk7.outputs.cmake-module-dir }}" ^
       -DWDK7_ARCH=${{ matrix.arch }}
 ```
 
 The action bundles `cmake/wdk7.cmake`, so projects can use the action's
 toolchain file directly. If a project carries a customized copy, pass that path
 to CMake instead.
+
+The action also bundles `cmake/FindDbgEng.cmake`. For WinDbg extensions or
+DbgEng programs, add the module directory to `CMAKE_MODULE_PATH` and use:
+
+```cmake
+find_package(DbgEng REQUIRED)
+target_link_libraries(my_extension PRIVATE DbgEng::DbgEng)
+```
 
 For legacy WDK build projects, the action also bundles `ddkbuild.cmd` and sets
 `W7BASE` after WDK7 is resolved:
@@ -54,9 +63,18 @@ For legacy WDK build projects, the action also bundles `ddkbuild.cmd` and sets
 - `root`: resolved WDK7 root.
 - `source`: `input`, `environment`, `cache`, `default`, `download`, or `none`.
 - `cache-hit`: `true` when an existing cached tree was reused.
+- `cmake-module-dir`: absolute path to the bundled CMake module directory.
 - `toolchain-file`: absolute path to the bundled CMake WDK7 toolchain file.
+- `finddbgeng-module`: absolute path to the bundled `FindDbgEng.cmake` module.
 - `ddkbuild-cmd`: absolute path to the bundled `ddkbuild.cmd` wrapper.
 - `cmake-generator`: recommended generator, currently `NMake Makefiles`.
+- `dbgeng-found`: `true` when a usable DbgEng SDK was found or prepared.
+- `debuggers-root`: resolved Debugging Tools root.
+- `dbgeng-include-dir`: DbgEng include directory.
+- `dbgeng-lib-i386`: DbgEng x86 library directory.
+- `dbgeng-lib-amd64`: DbgEng amd64 library directory.
+- `debuggers-bin-x86`: x86 Debugging Tools binary directory when available.
+- `debuggers-bin-x64`: x64 Debugging Tools binary directory when available.
 
 ## Cache Behavior
 
@@ -69,9 +87,14 @@ Detection order:
 5. restored/local WDK7 cache
 6. download and extraction
 
-There is no "do not download" switch. If WDK7 is not found, the action tries
-the configured download URLs and then the built-in Microsoft URL. To force a
-specific local tree, pass `root`.
+There is no "do not download" switch. If WDK7 or the Debugging Tools SDK is not
+found, the action tries the configured download URLs and then the built-in
+Microsoft URL. To force a specific local tree, pass `root`.
+
+Debugging Tools are prepared as a separate SDK surface. The action exports
+`WDK7_DEBUGGERS_ROOT`, `WDK7_DBGENG_INCLUDE_DIR`, `WDK7_DBGENG_LIB_I386`, and
+`WDK7_DBGENG_LIB_AMD64`; it does not append these directories to the generic
+WDK7 include/library sets.
 
 The default local cache root is:
 
@@ -129,7 +152,7 @@ the action bundle, prepares WDK7 through this action, then compiles the static
 fixtures under `test/e2e`:
 
 - CMake plus `cmake/wdk7.cmake`: exe, dll, static lib, and WDM sys for i386 and
-  amd64.
+  amd64, plus a DbgEng-linked exe through `FindDbgEng.cmake`.
 - `ddkbuild.cmd`: WDM sys for i386 and amd64.
 
 ## Release

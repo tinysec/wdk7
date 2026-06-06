@@ -18,12 +18,30 @@ outputs:
     description: "Resolution source: input, environment, cache, default, or download."
   cache-hit:
     description: true when an existing cached WDK7 tree was reused.
+  cmake-module-dir:
+    description: Absolute path to the bundled CMake module directory.
   toolchain-file:
     description: Absolute path to the bundled CMake WDK7 toolchain file.
+  finddbgeng-module:
+    description: Absolute path to the bundled FindDbgEng.cmake module.
   ddkbuild-cmd:
     description: Absolute path to the bundled ddkbuild.cmd compatibility wrapper.
   cmake-generator:
     description: Recommended CMake generator for the WDK7 toolchain.
+  dbgeng-found:
+    description: true when a usable DbgEng SDK was found or prepared.
+  debuggers-root:
+    description: Resolved Debugging Tools root when dbgeng-found is true.
+  dbgeng-include-dir:
+    description: DbgEng include directory when dbgeng-found is true.
+  dbgeng-lib-i386:
+    description: DbgEng x86 library directory when dbgeng-found is true.
+  dbgeng-lib-amd64:
+    description: DbgEng amd64 library directory when dbgeng-found is true.
+  debuggers-bin-x86:
+    description: x86 Debugging Tools binary directory when available.
+  debuggers-bin-x64:
+    description: x64 Debugging Tools binary directory when available.
 
 runs:
   using: node24

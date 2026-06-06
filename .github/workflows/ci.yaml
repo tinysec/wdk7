@@ -41,8 +41,14 @@ jobs:
           "root=${{ steps.wdk7.outputs.root }}"
           "source=${{ steps.wdk7.outputs.source }}"
           "cache-hit=${{ steps.wdk7.outputs.cache-hit }}"
+          "dbgeng-found=${{ steps.wdk7.outputs.dbgeng-found }}"
           "toolchain-file=${{ steps.wdk7.outputs.toolchain-file }}"
+          "finddbgeng-module=${{ steps.wdk7.outputs.finddbgeng-module }}"
           "ddkbuild-cmd=${{ steps.wdk7.outputs.ddkbuild-cmd }}"
+
+          if ("${{ steps.wdk7.outputs.dbgeng-found }}" -ne "true") {
+            throw "DbgEng SDK was not prepared."
+          }
 
       - name: build cmake e2e targets
         shell: powershell
@@ -55,7 +61,8 @@ jobs:
             "e2e_cli.exe",
             "e2e_dll.dll",
             "e2e_lib.lib",
-            "e2e_sys.sys"
+            "e2e_sys.sys",
+            "e2e_dbgeng.exe"
           )
 
           foreach ($arch in @("i386", "amd64")) {
