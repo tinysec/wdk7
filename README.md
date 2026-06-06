@@ -4,7 +4,8 @@
 Driver Kit 7.1 for CI jobs.
 
 It first detects an existing WDK7 tree, then reuses a local cache, and finally
-downloads and extracts the WDK7 ISO when it cannot find a usable tree.
+downloads and extracts the WDK7 ISO when it cannot find a usable tree. The
+default prepared environment includes the Debugging Tools SDK used by DbgEng.
 
 ## Usage
 
@@ -84,14 +85,17 @@ Detection order:
 2. `WDK7_ROOT`
 3. `W7BASE`
 4. default `C:\WinDDK\7600.16385.1`
-5. restored/local WDK7 cache
+5. restored/local WDK7 cache with Debugging Tools SDK
 6. download and extraction
 
 There is no "do not download" switch. If WDK7 or the Debugging Tools SDK is not
 found, the action tries the configured download URLs and then the built-in
 Microsoft URL. To force a specific local tree, pass `root`.
 
-Debugging Tools are prepared as a separate SDK surface. The action exports
+The action uses one cache for the complete default environment: WDK7 plus the
+Debugging Tools SDK. It does not restore older WDK-only cache entries.
+
+Debugging Tools are exposed as a separate SDK surface. The action exports
 `WDK7_DEBUGGERS_ROOT`, `WDK7_DBGENG_INCLUDE_DIR`, `WDK7_DBGENG_LIB_I386`, and
 `WDK7_DBGENG_LIB_AMD64`; it does not append these directories to the generic
 WDK7 include/library sets.

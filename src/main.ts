@@ -13,7 +13,7 @@ const defaultDownloadUrls = [
 ];
 const cmakeGenerator = "NMake Makefiles";
 const cacheKey = "wdk7-7600.16385.1-debuggers-v1";
-const restoreKeys = ["wdk7-7600.16385.1", "wdk7-"];
+const restoreKeys: string[] = [];
 const downloadRetries = 3;
 
 interface Candidate {

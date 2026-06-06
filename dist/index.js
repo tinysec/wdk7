@@ -67464,7 +67464,7 @@ var defaultDownloadUrls = [
 ];
 var cmakeGenerator = "NMake Makefiles";
 var cacheKey = "wdk7-7600.16385.1-debuggers-v1";
-var restoreKeys = ["wdk7-7600.16385.1", "wdk7-"];
+var restoreKeys = [];
 var downloadRetries = 3;
 function readInputs() {
   const downloadUrls = splitDownloadUrls(getInput("download-url"));
