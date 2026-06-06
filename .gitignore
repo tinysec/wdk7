@@ -1,6 +1,9 @@
 # Local action debug files
 /.action-debug/
 
+# Node development dependencies
+/node_modules/
+
 # Editor/user state
 /.idea/
 /.vs/

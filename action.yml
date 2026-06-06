@@ -30,32 +30,15 @@ inputs:
 outputs:
   found:
     description: true when a usable WDK7 tree was found or prepared.
-    value: ${{ steps.setup.outputs.found }}
   root:
     description: Resolved WDK7 root.
-    value: ${{ steps.setup.outputs.root }}
   arch:
     description: Normalized WDK7 architecture.
-    value: ${{ steps.setup.outputs.arch }}
   source:
     description: Resolution source: input, environment, cache, default, or download.
-    value: ${{ steps.setup.outputs.source }}
   cache-hit:
     description: true when an existing cached WDK7 tree was reused.
-    value: ${{ steps.setup.outputs.cache-hit }}
 
 runs:
-  using: composite
-  steps:
-    - id: setup
-      shell: powershell
-      run: |
-        & "$env:GITHUB_ACTION_PATH\setup-wdk7.ps1" `
-          -Arch "${{ inputs.arch }}" `
-          -Root "${{ inputs.root }}" `
-          -Download "${{ inputs.download }}" `
-          -DownloadUrl "${{ inputs.download-url }}" `
-          -Sha256 "${{ inputs.sha256 }}" `
-          -CacheRoot "${{ inputs.cache-root }}" `
-          -InstallRoot "${{ inputs.install-root }}" `
-          -FailOnError "${{ inputs.fail-on-error }}"
+  using: node24
+  main: dist/index.js

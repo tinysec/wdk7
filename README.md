@@ -1,6 +1,6 @@
 # wdk7
 
-`wdk7` is a GitHub/Gitea compatible composite action that prepares Windows
+`wdk7` is a GitHub/Gitea compatible JavaScript action that prepares Windows
 Driver Kit 7.1 for CI jobs.
 
 It first detects an existing WDK7 tree, then reuses a local cache, and finally
@@ -72,9 +72,27 @@ between workflow runs:
 Gitea cache support depends on your runner/server configuration. Self-hosted
 runner disk persistence is usually simpler for WDK7.
 
+## Development
+
+The action is implemented in TypeScript and published as a bundled JavaScript
+action:
+
+```powershell
+cd D:\code\wdk7
+npm.cmd install
+npm.cmd run build
+```
+
+Commit both `src/main.ts` and the generated `dist/index.js`.
+
+PowerShell is intentionally limited to `scripts/mount-iso.ps1` and
+`scripts/dismount-iso.ps1`, because `Mount-DiskImage` and `Dismount-DiskImage`
+are Windows-native operations. Detection, downloads, hashing, outputs, and PATH
+updates are handled by TypeScript.
+
 ## Local Debugging
 
-The action entry point is just PowerShell. You can debug it without GitHub:
+You can debug the action without GitHub:
 
 ```powershell
 cd D:\code\wdk7
@@ -89,7 +107,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-local.ps1 -Ar
 ```
 
 The test script creates temporary `GITHUB_OUTPUT`, `GITHUB_ENV`, and
-`GITHUB_PATH` files, runs `setup-wdk7.ps1`, and prints exactly what the action
+`GITHUB_PATH` files, runs `dist/index.js`, and prints exactly what the action
 would export to later CI steps.
 
 If you have `act` configured with a Windows host runner, the repository also

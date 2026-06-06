@@ -1,0 +1,20 @@
+{
+  "name": "wdk7-action",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GitHub Action to detect, download, cache, and expose Windows Driver Kit 7.1.",
+  "main": "dist/index.js",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "package": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=cjs --outfile=dist/index.js --sourcemap",
+    "build": "npm run check && npm run package"
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.28.0",
+    "typescript": "^5.8.3"
+  }
+}

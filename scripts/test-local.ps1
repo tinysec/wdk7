@@ -25,15 +25,24 @@ $env:GITHUB_PATH = Join-Path $debugRoot "github-path.txt"
 Remove-Item -LiteralPath $env:GITHUB_OUTPUT, $env:GITHUB_ENV, $env:GITHUB_PATH -Force -ErrorAction SilentlyContinue
 New-Item -ItemType File -Force -Path $env:GITHUB_OUTPUT, $env:GITHUB_ENV, $env:GITHUB_PATH | Out-Null
 
-& (Join-Path $repoRoot "setup-wdk7.ps1") `
-    -Arch $Arch `
-    -Root $Root `
-    -Download $Download `
-    -DownloadUrl $DownloadUrl `
-    -Sha256 $Sha256 `
-    -CacheRoot $CacheRoot `
-    -InstallRoot $InstallRoot `
-    -FailOnError $FailOnError
+Set-Item -Path "Env:INPUT_ARCH" -Value $Arch
+Set-Item -Path "Env:INPUT_ROOT" -Value $Root
+Set-Item -Path "Env:INPUT_DOWNLOAD" -Value $Download
+Set-Item -Path "Env:INPUT_DOWNLOAD-URL" -Value $DownloadUrl
+Set-Item -Path "Env:INPUT_SHA256" -Value $Sha256
+Set-Item -Path "Env:INPUT_CACHE-ROOT" -Value $CacheRoot
+Set-Item -Path "Env:INPUT_INSTALL-ROOT" -Value $InstallRoot
+Set-Item -Path "Env:INPUT_FAIL-ON-ERROR" -Value $FailOnError
+
+$entry = Join-Path $repoRoot "dist\index.js"
+if (-not (Test-Path -LiteralPath $entry)) {
+    throw "Missing dist\index.js. Run 'npm.cmd install' and 'npm.cmd run build' first."
+}
+
+node $entry
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
 
 Write-Host ""
 Write-Host "Debug files: $debugRoot"
