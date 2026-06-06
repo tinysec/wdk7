@@ -32,9 +32,9 @@ The action bundles `cmake/wdk7.cmake`, so projects can use the action's
 toolchain file directly. If a project carries a customized copy, pass that path
 to CMake instead.
 
-`wdk7.cmake` adapts WDK7 to ordinary CMake user-mode targets by default. Project
-CMake files should prefer standard CMake commands and should not need WDK7
-helpers for exe, dll, or static library targets:
+`wdk7.cmake` adapts WDK7 to ordinary CMake user-mode targets by default. It does
+not provide a parallel `wdk7_add_*` helper DSL; project CMake files should use
+standard CMake commands for exe, dll, and static library targets:
 
 ```cmake
 add_library(plugin SHARED plugin.c)
