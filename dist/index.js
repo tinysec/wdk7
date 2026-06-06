@@ -1074,14 +1074,14 @@ var require_util = __commonJS({
         }
         const port = url2.port != null ? url2.port : url2.protocol === "https:" ? 443 : 80;
         let origin = url2.origin != null ? url2.origin : `${url2.protocol || ""}//${url2.hostname || ""}:${port}`;
-        let path13 = url2.path != null ? url2.path : `${url2.pathname || ""}${url2.search || ""}`;
+        let path19 = url2.path != null ? url2.path : `${url2.pathname || ""}${url2.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path13 && path13[0] !== "/") {
-          path13 = `/${path13}`;
+        if (path19 && path19[0] !== "/") {
+          path19 = `/${path19}`;
         }
-        return new URL(`${origin}${path13}`);
+        return new URL(`${origin}${path19}`);
       }
       if (!isHttpOrHttpsPrefixed(url2.origin || url2.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -1532,39 +1532,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method, path: path13, origin }
+          request: { method, path: path19, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method, origin, path13);
+        debuglog("sending request to %s %s/%s", method, origin, path19);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method, path: path13, origin },
+          request: { method, path: path19, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method,
           origin,
-          path13,
+          path19,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method, path: path13, origin }
+          request: { method, path: path19, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method, origin, path13);
+        debuglog("trailers received from %s %s/%s", method, origin, path19);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method, path: path13, origin },
+          request: { method, path: path19, origin },
           error: error2
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method,
           origin,
-          path13,
+          path19,
           error2.message
         );
       });
@@ -1613,9 +1613,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method, path: path13, origin }
+            request: { method, path: path19, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method, origin, path13);
+          debuglog("sending request to %s %s/%s", method, origin, path19);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -1678,7 +1678,7 @@ var require_request = __commonJS({
     var kHandler = /* @__PURE__ */ Symbol("handler");
     var Request = class {
       constructor(origin, {
-        path: path13,
+        path: path19,
         method,
         body: body2,
         headers,
@@ -1693,11 +1693,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler) {
-        if (typeof path13 !== "string") {
+        if (typeof path19 !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path13[0] !== "/" && !(path13.startsWith("http://") || path13.startsWith("https://")) && method !== "CONNECT") {
+        } else if (path19[0] !== "/" && !(path19.startsWith("http://") || path19.startsWith("https://")) && method !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path13)) {
+        } else if (invalidPathRegex.test(path19)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method !== "string") {
@@ -1763,7 +1763,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path13, query) : path13;
+        this.path = query ? buildURL(path19, query) : path19;
         this.origin = origin;
         this.idempotent = idempotent == null ? method === "HEAD" || method === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -6327,7 +6327,7 @@ var require_client_h1 = __commonJS({
       return method !== "GET" && method !== "HEAD" && method !== "OPTIONS" && method !== "TRACE" && method !== "CONNECT";
     }
     function writeH1(client, request) {
-      const { method, path: path13, host, upgrade, blocking, reset } = request;
+      const { method, path: path19, host, upgrade, blocking, reset } = request;
       let { body: body2, headers, contentLength: contentLength2 } = request;
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH" || method === "QUERY" || method === "PROPFIND" || method === "PROPPATCH";
       if (util5.isFormDataLike(body2)) {
@@ -6393,7 +6393,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method} ${path13} HTTP/1.1\r
+      let header = `${method} ${path19} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -6919,7 +6919,7 @@ var require_client_h2 = __commonJS({
     }
     function writeH2(client, request) {
       const session = client[kHTTP2Session];
-      const { method, path: path13, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
+      const { method, path: path19, host, upgrade, expectContinue, signal, headers: reqHeaders } = request;
       let { body: body2 } = request;
       if (upgrade) {
         util5.errorRequest(client, request, new Error("Upgrade not supported for H2"));
@@ -6986,7 +6986,7 @@ var require_client_h2 = __commonJS({
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path13;
+      headers[HTTP2_HEADER_PATH] = path19;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH";
       if (body2 && typeof body2.read === "function") {
@@ -7339,9 +7339,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util5.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path13 = search ? `${pathname}${search}` : pathname;
+        const path19 = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path13;
+        this.opts.path = path19;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -8576,10 +8576,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path: path13 = "/",
+          path: path19 = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path13;
+        opts.path = origin + path19;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL3(origin);
           headers.host = host;
@@ -10500,20 +10500,20 @@ var require_mock_utils = __commonJS({
       }
       return true;
     }
-    function safeUrl(path13) {
-      if (typeof path13 !== "string") {
-        return path13;
+    function safeUrl(path19) {
+      if (typeof path19 !== "string") {
+        return path19;
       }
-      const pathSegments = path13.split("?");
+      const pathSegments = path19.split("?");
       if (pathSegments.length !== 2) {
-        return path13;
+        return path19;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
-    function matchKey(mockDispatch2, { path: path13, method, body: body2, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path13);
+    function matchKey(mockDispatch2, { path: path19, method, body: body2, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path19);
       const methodMatch = matchValue(mockDispatch2.method, method);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body2) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -10535,7 +10535,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path13 }) => matchValue(safeUrl(path13), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path19 }) => matchValue(safeUrl(path19), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -10573,9 +10573,9 @@ var require_mock_utils = __commonJS({
       }
     }
     function buildKey(opts) {
-      const { path: path13, method, body: body2, headers, query } = opts;
+      const { path: path19, method, body: body2, headers, query } = opts;
       return {
-        path: path13,
+        path: path19,
         method,
         body: body2,
         headers,
@@ -11038,10 +11038,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method, path: path13, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method, path: path19, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method,
             Origin: origin,
-            Path: path13,
+            Path: path19,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -15922,9 +15922,9 @@ var require_util6 = __commonJS({
         }
       }
     }
-    function validateCookiePath(path13) {
-      for (let i = 0; i < path13.length; ++i) {
-        const code = path13.charCodeAt(i);
+    function validateCookiePath(path19) {
+      for (let i = 0; i < path19.length; ++i) {
+        const code = path19.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code === 127 || // DEL
         code === 59) {
@@ -18601,11 +18601,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path13 = opts.path;
+          let path19 = opts.path;
           if (!opts.path.startsWith("/")) {
-            path13 = `/${path13}`;
+            path19 = `/${path19}`;
           }
-          url2 = new URL(util5.parseOrigin(url2).origin + path13);
+          url2 = new URL(util5.parseOrigin(url2).origin + path19);
         } else {
           if (!opts) {
             opts = typeof url2 === "object" ? url2 : {};
@@ -18903,7 +18903,7 @@ var require_minimatch = __commonJS({
   "node_modules/minimatch/minimatch.js"(exports2, module) {
     module.exports = minimatch2;
     minimatch2.Minimatch = Minimatch2;
-    var path13 = (function() {
+    var path19 = (function() {
       try {
         return __require("path");
       } catch (e) {
@@ -18911,7 +18911,7 @@ var require_minimatch = __commonJS({
     })() || {
       sep: "/"
     };
-    minimatch2.sep = path13.sep;
+    minimatch2.sep = path19.sep;
     var GLOBSTAR = minimatch2.GLOBSTAR = Minimatch2.GLOBSTAR = {};
     var expand = require_brace_expansion();
     var plTypes = {
@@ -19000,8 +19000,8 @@ var require_minimatch = __commonJS({
       assertValidPattern(pattern);
       if (!options) options = {};
       pattern = pattern.trim();
-      if (!options.allowWindowsEscape && path13.sep !== "/") {
-        pattern = pattern.split(path13.sep).join("/");
+      if (!options.allowWindowsEscape && path19.sep !== "/") {
+        pattern = pattern.split(path19.sep).join("/");
       }
       this.options = options;
       this.maxGlobstarRecursion = options.maxGlobstarRecursion !== void 0 ? options.maxGlobstarRecursion : 200;
@@ -19372,8 +19372,8 @@ var require_minimatch = __commonJS({
       if (this.empty) return f === "";
       if (f === "/" && partial) return true;
       var options = this.options;
-      if (path13.sep !== "/") {
-        f = f.split(path13.sep).join("/");
+      if (path19.sep !== "/") {
+        f = f.split(path19.sep).join("/");
       }
       f = f.split(slashSplit);
       this.debug(this.pattern, "split", f);
@@ -27139,6 +27139,10 @@ var require_commonjs2 = __commonJS({
   }
 });
 
+// src/main.ts
+import { mkdirSync as mkdirSync4 } from "node:fs";
+import * as path18 from "node:path";
+
 // node_modules/@actions/core/lib/command.js
 import * as os from "os";
 
@@ -29293,8 +29297,8 @@ var Path = class {
         let remaining = itemPath;
         let dir = dirname4(remaining);
         while (dir !== remaining) {
-          const basename6 = path6.basename(remaining);
-          this.segments.unshift(basename6);
+          const basename7 = path6.basename(remaining);
+          this.segments.unshift(basename7);
           remaining = dir;
           dir = dirname4(remaining);
         }
@@ -29498,8 +29502,8 @@ var Pattern = class _Pattern {
 
 // node_modules/@actions/glob/lib/internal-search-state.js
 var SearchState = class {
-  constructor(path13, level) {
-    this.path = path13;
+  constructor(path19, level) {
+    this.path = path19;
     this.level = level;
   }
 };
@@ -34053,15 +34057,15 @@ function getRequestUrl(baseUri, operationSpec, operationArguments, fallbackObjec
   let isAbsolutePath = false;
   let requestUrl = replaceAll(baseUri, urlReplacements);
   if (operationSpec.path) {
-    let path13 = replaceAll(operationSpec.path, urlReplacements);
-    if (operationSpec.path === "/{nextLink}" && path13.startsWith("/")) {
-      path13 = path13.substring(1);
+    let path19 = replaceAll(operationSpec.path, urlReplacements);
+    if (operationSpec.path === "/{nextLink}" && path19.startsWith("/")) {
+      path19 = path19.substring(1);
     }
-    if (isAbsoluteUrl(path13)) {
-      requestUrl = path13;
+    if (isAbsoluteUrl(path19)) {
+      requestUrl = path19;
       isAbsolutePath = true;
     } else {
-      requestUrl = appendPath(requestUrl, path13);
+      requestUrl = appendPath(requestUrl, path19);
     }
   }
   const { queryParams, sequenceParams } = calculateQueryParameters(operationSpec, operationArguments, fallbackObject);
@@ -34107,9 +34111,9 @@ function appendPath(url2, pathToAppend) {
   }
   const searchStart = pathToAppend.indexOf("?");
   if (searchStart !== -1) {
-    const path13 = pathToAppend.substring(0, searchStart);
+    const path19 = pathToAppend.substring(0, searchStart);
     const search = pathToAppend.substring(searchStart + 1);
-    newPath = newPath + path13;
+    newPath = newPath + path19;
     if (search) {
       parsedUrl.search = parsedUrl.search ? `${parsedUrl.search}&${search}` : search;
     }
@@ -37602,16 +37606,16 @@ var MatcherView = class {
    * @returns {string|undefined}
    */
   getCurrentTag() {
-    const path13 = this._matcher.path;
-    return path13.length > 0 ? path13[path13.length - 1].tag : void 0;
+    const path19 = this._matcher.path;
+    return path19.length > 0 ? path19[path19.length - 1].tag : void 0;
   }
   /**
    * Get current namespace.
    * @returns {string|undefined}
    */
   getCurrentNamespace() {
-    const path13 = this._matcher.path;
-    return path13.length > 0 ? path13[path13.length - 1].namespace : void 0;
+    const path19 = this._matcher.path;
+    return path19.length > 0 ? path19[path19.length - 1].namespace : void 0;
   }
   /**
    * Get current node's attribute value.
@@ -37619,9 +37623,9 @@ var MatcherView = class {
    * @returns {*}
    */
   getAttrValue(attrName) {
-    const path13 = this._matcher.path;
-    if (path13.length === 0) return void 0;
-    return path13[path13.length - 1].values?.[attrName];
+    const path19 = this._matcher.path;
+    if (path19.length === 0) return void 0;
+    return path19[path19.length - 1].values?.[attrName];
   }
   /**
    * Check if current node has an attribute.
@@ -37629,9 +37633,9 @@ var MatcherView = class {
    * @returns {boolean}
    */
   hasAttr(attrName) {
-    const path13 = this._matcher.path;
-    if (path13.length === 0) return false;
-    const current = path13[path13.length - 1];
+    const path19 = this._matcher.path;
+    if (path19.length === 0) return false;
+    const current = path19[path19.length - 1];
     return current.values !== void 0 && attrName in current.values;
   }
   /**
@@ -37639,18 +37643,18 @@ var MatcherView = class {
    * @returns {number}
    */
   getPosition() {
-    const path13 = this._matcher.path;
-    if (path13.length === 0) return -1;
-    return path13[path13.length - 1].position ?? 0;
+    const path19 = this._matcher.path;
+    if (path19.length === 0) return -1;
+    return path19[path19.length - 1].position ?? 0;
   }
   /**
    * Get current node's repeat counter (occurrence count of this tag name).
    * @returns {number}
    */
   getCounter() {
-    const path13 = this._matcher.path;
-    if (path13.length === 0) return -1;
-    return path13[path13.length - 1].counter ?? 0;
+    const path19 = this._matcher.path;
+    if (path19.length === 0) return -1;
+    return path19[path19.length - 1].counter ?? 0;
   }
   /**
    * Get current node's sibling index (alias for getPosition).
@@ -40040,11 +40044,11 @@ var NativeCRC64 = (() => {
       throw new Error("Module.ENVIRONMENT has been deprecated. To force the environment, use the ENVIRONMENT compile-time option (for example, -sENVIRONMENT=web or -sENVIRONMENT=node)");
     }
     var scriptDirectory = "";
-    function locateFile(path13) {
+    function locateFile(path19) {
       if (Module["locateFile"]) {
-        return Module["locateFile"](path13, scriptDirectory);
+        return Module["locateFile"](path19, scriptDirectory);
       }
-      return scriptDirectory + path13;
+      return scriptDirectory + path19;
     }
     var read_, readAsync, readBinary, setWindowTitle;
     function logExceptionOnExit(e) {
@@ -43618,9 +43622,9 @@ var StorageSharedKeyCredentialPolicy = class extends CredentialPolicy {
    * @param request -
    */
   getCanonicalizedResourceString(request) {
-    const path13 = getURLPath(request.url) || "/";
+    const path19 = getURLPath(request.url) || "/";
     let canonicalizedResourceString = "";
-    canonicalizedResourceString += `/${this.factory.accountName}${path13}`;
+    canonicalizedResourceString += `/${this.factory.accountName}${path19}`;
     const queries = getURLQueries(request.url);
     const lowercaseQueries = {};
     if (queries) {
@@ -44102,9 +44106,9 @@ function storageSharedKeyCredentialPolicy(options) {
     return canonicalizedHeadersStringToSign;
   }
   function getCanonicalizedResourceString(request) {
-    const path13 = getURLPath(request.url) || "/";
+    const path19 = getURLPath(request.url) || "/";
     let canonicalizedResourceString = "";
-    canonicalizedResourceString += `/${options.accountName}${path13}`;
+    canonicalizedResourceString += `/${options.accountName}${path19}`;
     const queries = getURLQueries(request.url);
     const lowercaseQueries = {};
     if (queries) {
@@ -58203,10 +58207,10 @@ var StorageContextClient = class extends StorageClient {
 // node_modules/@azure/storage-blob/dist/esm/utils/utils.common.js
 function escapeURLPath(url2) {
   const urlParsed = new URL(url2);
-  let path13 = urlParsed.pathname;
-  path13 = path13 || "/";
-  path13 = escape(path13);
-  urlParsed.pathname = path13;
+  let path19 = urlParsed.pathname;
+  path19 = path19 || "/";
+  path19 = escape(path19);
+  urlParsed.pathname = path19;
   return urlParsed.toString();
 }
 function getProxyUriFromDevConnString(connectionString) {
@@ -58291,9 +58295,9 @@ function escape(text) {
 }
 function appendToURLPath(url2, name) {
   const urlParsed = new URL(url2);
-  let path13 = urlParsed.pathname;
-  path13 = path13 ? path13.endsWith("/") ? `${path13}${name}` : `${path13}/${name}` : name;
-  urlParsed.pathname = path13;
+  let path19 = urlParsed.pathname;
+  path19 = path19 ? path19.endsWith("/") ? `${path19}${name}` : `${path19}/${name}` : name;
+  urlParsed.pathname = path19;
   return urlParsed.toString();
 }
 function setURLParameter2(url2, name, value) {
@@ -67451,14 +67455,130 @@ function saveCacheV2(paths_1, key_1, options_1) {
   });
 }
 
-// src/main.ts
-import { createWriteStream as createWriteStream2, existsSync as existsSync4, mkdirSync, readdirSync, renameSync, rmSync, statSync as statSync2 } from "node:fs";
+// src/cache.ts
+var CacheSession = class {
+  root;
+  key;
+  restoreKeys;
+  restoredKey;
+  restoreAttempted;
+  /**
+   * The constructor stores cache identity without touching the cache service.
+   * Deferring network calls keeps the main flow free to skip restore when a
+   * valid local WDK installation already satisfies the request.
+   */
+  constructor(root, key, restoreKeys) {
+    this.root = root;
+    this.key = key;
+    this.restoreKeys = restoreKeys;
+    this.restoredKey = void 0;
+    this.restoreAttempted = false;
+  }
+  /**
+   * restoreOnce lazily restores the cache and returns the hit key. Repeated
+   * calls are common in the debugger flow, and only the first one should contact
+   * the cache service.
+   */
+  async restoreOnce() {
+    if (false === this.restoreAttempted) {
+      this.restoreAttempted = true;
+      this.restoredKey = await restoreActionCache(this.root, this.key, this.restoreKeys);
+    }
+    return this.restoredKey;
+  }
+  /**
+   * hasRestored reports whether any Actions cache entry was reused. The action
+   * exposes this as a user-facing cache-hit signal.
+   */
+  hasRestored() {
+    return void 0 !== this.restoredKey;
+  }
+  /**
+   * saveIfDifferentKey stores the cache when the exact requested key was not
+   * already restored. This also upgrades a base WDK cache into the debugger
+   * cache after Debugging Tools are prepared.
+   */
+  async saveIfDifferentKey() {
+    if (this.key === this.restoredKey) {
+      return;
+    }
+    await saveActionCache(this.root, this.key);
+  }
+  /**
+   * saveWhenChanged is used for flows that started from a local WDK install.
+   * They should not save the local WDK tree, but should preserve newly extracted
+   * debugger files placed under the action cache root.
+   */
+  async saveWhenChanged(changed) {
+    if (false === changed) {
+      return;
+    }
+    await this.saveIfDifferentKey();
+  }
+};
+async function restoreActionCache(cacheRoot, cacheKey, restoreKeys) {
+  if (false === isFeatureAvailable()) {
+    info("Actions cache service is not available; using local disk cache only.");
+    return void 0;
+  }
+  try {
+    info(`Restoring WDK7 cache with key '${cacheKey}'.`);
+    const hit = await restoreCache([cacheRoot], cacheKey, restoreKeys);
+    if (void 0 !== hit) {
+      info(`Restored WDK7 cache from key '${hit}'.`);
+    } else {
+      info("No WDK7 actions/cache entry was restored.");
+    }
+    return hit;
+  } catch (error2) {
+    warning(`WDK7 cache restore failed: ${formatError(error2)}`);
+    return void 0;
+  }
+}
+async function saveActionCache(cacheRoot, cacheKey) {
+  if (false === isFeatureAvailable()) {
+    info("Actions cache service is not available; skipping WDK7 cache save.");
+    return;
+  }
+  try {
+    info(`Saving WDK7 cache with key '${cacheKey}'.`);
+    await saveCache2([cacheRoot], cacheKey);
+  } catch (error2) {
+    warning(`WDK7 cache save skipped: ${formatError(error2)}`);
+  }
+}
+function formatError(error2) {
+  if (error2 instanceof Error) {
+    return error2.message;
+  }
+  return String(error2);
+}
+
+// src/debuggers.ts
+import { existsSync as existsSync7, mkdirSync as mkdirSync3 } from "node:fs";
+import * as path16 from "node:path";
+
+// src/download.ts
+import { createWriteStream as createWriteStream2, existsSync as existsSync4, mkdirSync, renameSync, rmSync } from "node:fs";
 import * as http3 from "node:http";
 import * as https3 from "node:https";
-import * as os8 from "node:os";
 import * as path12 from "node:path";
-import { spawn as spawn2 } from "node:child_process";
-import { fileURLToPath as fileURLToPath2 } from "node:url";
+
+// src/lists.ts
+function uniqueStrings(values) {
+  const seen = /* @__PURE__ */ new Set();
+  const result = [];
+  for (const value of values) {
+    const key = value.toLowerCase();
+    if (false === seen.has(key)) {
+      seen.add(key);
+      result.push(value);
+    }
+  }
+  return result;
+}
+
+// src/settings.ts
 var defaultDownloadUrls = [
   "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO"
 ];
@@ -67467,192 +67587,500 @@ var wdkOnlyCacheKey = "wdk-7600.16385.1";
 var debuggerCacheKey = "wdk-7600.16385.1-debugger";
 var downloadRetries = 3;
 function readInputs() {
-  const downloadUrls = splitDownloadUrls(getInput("download-url"));
+  const configuredDownloadUrls = splitDownloadUrls(getInput("download-url"));
+  const downloadUrls = uniqueStrings(configuredDownloadUrls.concat(defaultDownloadUrls));
+  const root = getInput("root");
+  const debuggerEnabled = readBooleanInput("debugger", false);
   return {
-    root: getInput("root"),
-    downloadUrls: uniqueStrings([...downloadUrls, ...defaultDownloadUrls]),
-    debugger: readBooleanInput("debugger", false)
+    root,
+    downloadUrls,
+    debugger: debuggerEnabled
   };
 }
-function splitDownloadUrls(value) {
-  return value.split(/[\r\n,;]+/).map((item) => item.trim()).filter(Boolean);
+function cacheKeyForDebugger(debuggerEnabled) {
+  if (true === debuggerEnabled) {
+    return debuggerCacheKey;
+  }
+  return wdkOnlyCacheKey;
 }
-function uniqueStrings(values) {
-  const seen = /* @__PURE__ */ new Set();
+function restoreKeysForDebugger(debuggerEnabled) {
+  if (true === debuggerEnabled) {
+    return [wdkOnlyCacheKey];
+  }
+  return [];
+}
+function splitDownloadUrls(value) {
   const result = [];
-  for (const value of values) {
-    const key = value.toLowerCase();
-    if (!seen.has(key)) {
-      seen.add(key);
-      result.push(value);
+  const parts = value.split(/[\r\n,;]+/);
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if ("" !== trimmed) {
+      result.push(trimmed);
     }
   }
   return result;
 }
 function readBooleanInput(name, defaultValue) {
-  const value = getInput(name).trim().toLowerCase();
-  if (!value) {
+  const rawValue = getInput(name);
+  const value = rawValue.trim().toLowerCase();
+  if ("" === value) {
     return defaultValue;
   }
-  if (value === "true") {
+  if ("true" === value) {
     return true;
   }
-  if (value === "false") {
+  if ("false" === value) {
     return false;
   }
   throw new Error(`Input '${name}' must be true or false.`);
 }
+
+// src/download.ts
+var maxRedirects = 8;
+var requestTimeoutMilliseconds = 3e5;
+async function ensureWdk7Iso(cacheRoot, urls) {
+  const isoPath = path12.join(cacheRoot, "GRMWDK_EN_7600_1.ISO");
+  if (true === existsSync4(isoPath)) {
+    info(`Using cached WDK7 ISO: ${isoPath}`);
+    return isoPath;
+  }
+  const downloadedUrl = await downloadFileFromUrlsWithRetries(urls, isoPath, downloadRetries);
+  info(`Downloaded WDK7 ISO from: ${downloadedUrl}`);
+  return isoPath;
+}
+async function downloadFileFromUrlsWithRetries(urls, outputPath, attempts) {
+  let lastError = void 0;
+  for (let index = 0; index < urls.length; index = index + 1) {
+    const url2 = urls[index];
+    try {
+      info(`Downloading WDK7 ISO from source ${index + 1}/${urls.length}: ${url2}`);
+      await downloadFileWithRetries(url2, outputPath, attempts);
+      return url2;
+    } catch (error2) {
+      lastError = error2;
+      rmSync(outputPath, { force: true });
+      if (index + 1 < urls.length) {
+        warning(`WDK7 ISO source ${index + 1}/${urls.length} failed: ${formatError2(error2)}. Trying next source.`);
+      }
+    }
+  }
+  throw errorFromUnknown(lastError);
+}
+async function downloadFileWithRetries(urlText, outputPath, attempts) {
+  let lastError = void 0;
+  for (let attempt = 1; attempt <= attempts; attempt = attempt + 1) {
+    try {
+      await downloadFile(urlText, outputPath, 0);
+      return;
+    } catch (error2) {
+      lastError = error2;
+      rmSync(outputPath, { force: true });
+      if (attempt >= attempts) {
+        break;
+      }
+      const delay4 = Math.min(3e4, 2e3 * attempt);
+      warning(`WDK7 ISO download attempt ${attempt}/${attempts} failed: ${formatError2(error2)}. Retrying in ${delay4 / 1e3}s.`);
+      await sleep2(delay4);
+    }
+  }
+  throw errorFromUnknown(lastError);
+}
+async function downloadFile(urlText, outputPath, redirectCount) {
+  if (maxRedirects < redirectCount) {
+    throw new Error(`Too many redirects while downloading '${urlText}'.`);
+  }
+  mkdirSync(path12.dirname(outputPath), { recursive: true });
+  const url2 = new URL(urlText);
+  const tmpPath = `${outputPath}.tmp`;
+  rmSync(tmpPath, { force: true });
+  function downloadFilePromise(resolve3, reject) {
+    function onResponse(response) {
+      let status = 0;
+      if (void 0 !== response.statusCode) {
+        status = response.statusCode;
+      }
+      const location = response.headers.location;
+      if (300 <= status && 400 > status && void 0 !== location) {
+        response.resume();
+        const nextUrl = new URL(location, url2).toString();
+        downloadFile(nextUrl, outputPath, redirectCount + 1).then(resolve3, reject);
+        return;
+      }
+      if (200 > status || 300 <= status) {
+        response.resume();
+        reject(new Error(`Download failed with HTTP ${status}: ${urlText}`));
+        return;
+      }
+      writeResponseToFile(response, tmpPath, outputPath, resolve3, reject);
+    }
+    const client = "https:" === url2.protocol ? https3 : http3;
+    const request = client.get(url2, onResponse);
+    request.on("error", function onRequestError(error2) {
+      rmSync(tmpPath, { force: true });
+      reject(error2);
+    });
+    request.setTimeout(requestTimeoutMilliseconds, function onRequestTimeout() {
+      request.destroy(new Error(`Download timed out after 300 seconds: ${urlText}`));
+    });
+  }
+  await new Promise(downloadFilePromise);
+}
+function writeResponseToFile(response, tmpPath, outputPath, resolve3, reject) {
+  const file = createWriteStream2(tmpPath);
+  response.pipe(file);
+  file.on("finish", function onFileFinish() {
+    function onFileClosed() {
+      renameSync(tmpPath, outputPath);
+      resolve3();
+    }
+    file.close(onFileClosed);
+  });
+  file.on("error", function onFileError(error2) {
+    rmSync(tmpPath, { force: true });
+    reject(error2);
+  });
+}
+function sleep2(milliseconds) {
+  function sleepPromise(resolve3) {
+    setTimeout(resolve3, milliseconds);
+  }
+  return new Promise(sleepPromise);
+}
+function formatError2(error2) {
+  if (error2 instanceof Error) {
+    return error2.message;
+  }
+  return String(error2);
+}
+function errorFromUnknown(error2) {
+  if (error2 instanceof Error) {
+    return error2;
+  }
+  return new Error(String(error2));
+}
+
+// src/files.ts
+import { existsSync as existsSync5, readdirSync, statSync as statSync2 } from "node:fs";
+import * as path14 from "node:path";
+
+// src/paths.ts
+import * as os8 from "node:os";
+import * as path13 from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
 function actionRoot() {
-  return path12.dirname(path12.dirname(fileURLToPath2(import.meta.url)));
+  const bundledEntry = fileURLToPath2(import.meta.url);
+  const distDirectory = path13.dirname(bundledEntry);
+  return path13.dirname(distDirectory);
 }
 function cmakeModuleDir() {
-  return path12.join(actionRoot(), "cmake");
+  return path13.join(actionRoot(), "cmake");
 }
 function toolchainFile() {
-  return path12.join(cmakeModuleDir(), "wdk7.cmake");
+  return path13.join(cmakeModuleDir(), "wdk7.cmake");
 }
 function ddkbuildCmd() {
-  return path12.join(actionRoot(), "ddkbuild.cmd");
-}
-function publishStaticOutputs() {
-  setOutput("cmake-module-dir", cmakeModuleDir());
-  setOutput("toolchain-file", toolchainFile());
-  setOutput("ddkbuild-cmd", ddkbuildCmd());
-  setOutput("cmake-generator", cmakeGenerator);
+  return path13.join(actionRoot(), "ddkbuild.cmd");
 }
 function expandEnvironment(value) {
-  return value.replace(/%([^%]+)%/g, (_match, name) => process.env[name] ?? "");
+  return value.replace(/%([^%]+)%/g, replaceEnvironmentToken);
 }
 function fullPath(value) {
-  if (!value.trim()) {
+  if ("" === value.trim()) {
     return "";
   }
-  return path12.resolve(expandEnvironment(value));
+  return path13.resolve(expandEnvironment(value));
 }
 function targetBins(root) {
   return [
-    path12.join(root, "bin", "x86", "x86"),
-    path12.join(root, "bin", "x86", "amd64")
+    path13.join(root, "bin", "x86", "x86"),
+    path13.join(root, "bin", "x86", "amd64")
   ];
 }
 function hostBin(root) {
-  return path12.join(root, "bin", "x86");
-}
-function isFileOrDirectoryPresent(candidatePath) {
-  return existsSync4(candidatePath);
-}
-function isWdk7Root(root) {
-  if (!root.trim()) {
-    return false;
-  }
-  const resolved = fullPath(root);
-  const required = [
-    path12.join(resolved, "bin", "setenv.bat"),
-    path12.join(resolved, "inc", "api"),
-    path12.join(resolved, "inc", "ddk"),
-    path12.join(hostBin(resolved), "nmake.exe"),
-    path12.join(hostBin(resolved), "rc.exe"),
-    ...targetBins(resolved).flatMap((bin) => [
-      path12.join(bin, "cl.exe"),
-      path12.join(bin, "link.exe")
-    ])
-  ];
-  return required.every(isFileOrDirectoryPresent);
+  return path13.join(root, "bin", "x86");
 }
 function defaultCacheRoot() {
-  if (process.env.RUNNER_TOOL_CACHE) {
-    return path12.join(process.env.RUNNER_TOOL_CACHE, "wdk7");
+  const runnerToolCache = process.env.RUNNER_TOOL_CACHE;
+  const localAppData = process.env.LOCALAPPDATA;
+  if (void 0 !== runnerToolCache && "" !== runnerToolCache) {
+    return path13.join(runnerToolCache, "wdk7");
   }
-  if (process.env.LOCALAPPDATA) {
-    return path12.join(process.env.LOCALAPPDATA, "actions-tool-cache", "wdk7");
+  if (void 0 !== localAppData && "" !== localAppData) {
+    return path13.join(localAppData, "actions-tool-cache", "wdk7");
   }
-  return path12.join(os8.tmpdir(), "actions-tool-cache", "wdk7");
+  return path13.join(os8.tmpdir(), "actions-tool-cache", "wdk7");
 }
-function addCandidate(candidates, root, source) {
-  if (!root?.trim()) {
-    return;
+function replaceEnvironmentToken(_match, name) {
+  const replacement = process.env[name];
+  if (void 0 === replacement) {
+    return "";
   }
-  const resolved = fullPath(root);
-  if (!candidates.some((candidate) => candidate.root.toLowerCase() === resolved.toLowerCase())) {
-    candidates.push({ root: resolved, source });
-  }
+  return replacement;
 }
-function findWdk7Root(requestedRoot, cacheRoot, includeCache) {
-  const candidates = [];
-  addCandidate(candidates, requestedRoot, "input");
-  addCandidate(candidates, process.env.WDK7_ROOT, "environment");
-  addCandidate(candidates, process.env.W7BASE, "environment");
-  if (includeCache) {
-    addCandidate(candidates, path12.join(cacheRoot, "7600.16385.1"), "cache");
-    addCandidate(candidates, path12.join(cacheRoot, "7600.16385.win7_wdk.100208-1538"), "cache");
-    addCandidate(candidates, path12.join(cacheRoot, "wdk7", "7600.16385.1"), "cache");
-    addCandidate(candidates, path12.join(cacheRoot, "wdk7", "7600.16385.win7_wdk.100208-1538"), "cache");
+
+// src/files.ts
+function listFilesUnder(root, predicate, maxDepth = 10) {
+  const resolvedRoot = fullPath(root);
+  if ("" === resolvedRoot || false === existsSync5(resolvedRoot)) {
+    return [];
   }
-  addCandidate(candidates, "C:\\WinDDK\\7600.16385.1", "default");
-  addCandidate(candidates, "C:\\WinDDK\\7600.16385.win7_wdk.100208-1538", "default");
-  return candidates.find((candidate) => isWdk7Root(candidate.root));
-}
-function findWdk7RootUnder(basePath) {
-  const resolvedBase = fullPath(basePath);
-  if (!resolvedBase || !existsSync4(resolvedBase)) {
-    return void 0;
-  }
-  if (isWdk7Root(resolvedBase)) {
-    return resolvedBase;
-  }
-  const stack = [resolvedBase];
-  while (stack.length > 0) {
+  const result = [];
+  const stack = [{ dir: resolvedRoot, depth: 0 }];
+  while (0 < stack.length) {
     const current = stack.pop();
-    if (!current) {
+    if (void 0 === current) {
       continue;
     }
-    let entries;
-    try {
-      entries = readdirSync(current);
-    } catch {
-      continue;
-    }
+    const entries = readDirectoryEntries(current.dir);
     for (const entry of entries) {
-      const entryPath = path12.join(current, entry);
-      let stats;
-      try {
-        stats = statSync2(entryPath);
-      } catch {
+      const entryPath = path14.join(current.dir, entry);
+      const stats = readStats(entryPath);
+      if (void 0 === stats) {
         continue;
       }
-      if (stats.isDirectory()) {
-        stack.push(entryPath);
-      } else if (entry.toLowerCase() === "setenv.bat") {
-        const root = path12.dirname(path12.dirname(entryPath));
-        if (isWdk7Root(root)) {
-          return fullPath(root);
+      if (true === stats.isDirectory()) {
+        if (current.depth < maxDepth) {
+          stack.push({ dir: entryPath, depth: current.depth + 1 });
         }
+      } else if (true === predicate(entryPath)) {
+        result.push(entryPath);
       }
     }
   }
-  return void 0;
+  return result;
 }
-function findCachedWdk7Root(cacheRoot) {
-  const root = findWdk7RootUnder(cacheRoot);
-  return root ? { root, source: "cache" } : void 0;
+function readDirectoryEntries(directory) {
+  try {
+    return readdirSync(directory);
+  } catch {
+    return [];
+  }
+}
+function readStats(filePath) {
+  try {
+    return statSync2(filePath);
+  } catch {
+    return void 0;
+  }
+}
+
+// src/iso.ts
+import { existsSync as existsSync6, mkdirSync as mkdirSync2, readdirSync as readdirSync2 } from "node:fs";
+import * as path15 from "node:path";
+
+// src/process.ts
+import { spawn as spawn2 } from "node:child_process";
+function runProcess(command, args, options) {
+  function runProcessPromise(resolve3, reject) {
+    const cwd = void 0 !== options ? options.cwd : void 0;
+    const silent = void 0 !== options && true === options.silent;
+    debug(`Running: ${command} ${args.join(" ")}`);
+    const child2 = spawn2(command, args, {
+      cwd,
+      windowsHide: true
+    });
+    let stdout = "";
+    let stderr = "";
+    child2.stdout.on("data", function onStdoutData(chunk) {
+      const text = chunk.toString();
+      stdout = stdout + text;
+      if (false === silent) {
+        process.stdout.write(text);
+      }
+    });
+    child2.stderr.on("data", function onStderrData(chunk) {
+      const text = chunk.toString();
+      stderr = stderr + text;
+      if (false === silent) {
+        process.stderr.write(text);
+      }
+    });
+    child2.on("error", function onChildError(error2) {
+      reject(error2);
+    });
+    child2.on("close", function onChildClose(code) {
+      if (0 === code) {
+        resolve3(stdout.trim());
+        return;
+      }
+      reject(new Error(`${command} failed with exit code ${code}. ${stderr.trim()}`));
+    });
+  }
+  return new Promise(runProcessPromise);
+}
+
+// src/iso.ts
+async function mountIso(isoPath) {
+  const script = path15.join(actionRoot(), "scripts", "mount-iso.ps1");
+  const output = await runProcess("powershell.exe", [
+    "-NoProfile",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    script,
+    "-ImagePath",
+    isoPath
+  ], { silent: true });
+  const drive = lastNonEmptyLine(output);
+  if ("" === drive) {
+    throw new Error("Mount-DiskImage did not return a drive letter.");
+  }
+  return drive.replace(":", "");
+}
+async function dismountIso(isoPath) {
+  const script = path15.join(actionRoot(), "scripts", "dismount-iso.ps1");
+  await runProcess("powershell.exe", [
+    "-NoProfile",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    script,
+    "-ImagePath",
+    isoPath
+  ], { silent: true });
+}
+async function extractMsi(msiPath, targetRoot, logRoot) {
+  const baseName = path15.basename(msiPath, path15.extname(msiPath));
+  const logPath = path15.join(logRoot, `${baseName}.log`);
+  try {
+    info(`Extracting ${path15.basename(msiPath)} to ${targetRoot}`);
+    await runMsiExtraction(msiPath, targetRoot, logPath);
+    return true;
+  } catch (error2) {
+    info(`Skipping ${path15.basename(msiPath)}: ${formatError3(error2)}`);
+    return false;
+  }
+}
+async function installWdk7FromIso(isoPath, targetRoot) {
+  info(`Mounting WDK7 ISO: ${isoPath}`);
+  const drive = await mountIso(isoPath);
+  try {
+    const mediaRoot = `${drive}:\\WDK`;
+    if (false === existsSync6(mediaRoot)) {
+      throw new Error(`Mounted ISO does not contain a WDK directory: ${mediaRoot}`);
+    }
+    mkdirSync2(targetRoot, { recursive: true });
+    const logRoot = path15.join(targetRoot, "_install_logs");
+    mkdirSync2(logRoot, { recursive: true });
+    const msiFiles = listWdkMsiFiles(mediaRoot);
+    if (0 === msiFiles.length) {
+      throw new Error(`No WDK MSI packages found under '${mediaRoot}'.`);
+    }
+    for (const msiPath of msiFiles) {
+      const baseName = path15.basename(msiPath, path15.extname(msiPath));
+      const logPath = path15.join(logRoot, `${baseName}.log`);
+      info(`Extracting ${path15.basename(msiPath)}`);
+      await runMsiExtraction(msiPath, targetRoot, logPath);
+    }
+  } finally {
+    await dismountIso(isoPath);
+  }
+}
+async function runMsiExtraction(msiPath, targetRoot, logPath) {
+  await runProcess("msiexec.exe", [
+    "/a",
+    msiPath,
+    "/qn",
+    "/norestart",
+    `TARGETDIR=${targetRoot}`,
+    "/l*v",
+    logPath
+  ]);
+}
+function listWdkMsiFiles(mediaRoot) {
+  const result = [];
+  const entries = readdirSync2(mediaRoot);
+  for (const entry of entries) {
+    if (true === entry.toLowerCase().endsWith(".msi")) {
+      result.push(path15.join(mediaRoot, entry));
+    }
+  }
+  return result;
+}
+function lastNonEmptyLine(output) {
+  let result = "";
+  const lines = output.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if ("" !== trimmed) {
+      result = trimmed;
+    }
+  }
+  return result;
+}
+function formatError3(error2) {
+  if (error2 instanceof Error) {
+    return error2.message;
+  }
+  return String(error2);
+}
+
+// src/debuggers.ts
+function findDbgEngSdk(wdkRoot, cacheRoot) {
+  const sdkFromWdk = findDbgEngSdkUnder(wdkRoot);
+  if (void 0 !== sdkFromWdk) {
+    return sdkFromWdk;
+  }
+  return findDbgEngSdkUnder(cacheRoot);
+}
+async function prepareOptionalDebuggersSdk(enabled2, wdkRoot, cacheRoot, downloadUrls) {
+  if (false === enabled2) {
+    info("Debugging Tools SDK was not requested. Set debugger: true to prepare DbgEng headers and libraries.");
+    return { cacheChanged: false };
+  }
+  return prepareDebuggersSdk(wdkRoot, cacheRoot, downloadUrls);
+}
+async function prepareDebuggersSdk(wdkRoot, cacheRoot, downloadUrls) {
+  let sdk = findDbgEngSdk(wdkRoot, cacheRoot);
+  if (void 0 !== sdk) {
+    return {
+      sdk,
+      cacheChanged: false
+    };
+  }
+  if (0 === downloadUrls.length) {
+    info("WDK7 Debuggers SDK was not found and no download URLs are configured.");
+    return { cacheChanged: false };
+  }
+  const isoPath = await ensureWdk7Iso(cacheRoot, downloadUrls);
+  const changed = await installDebuggersFromIso(isoPath, wdkRoot, cacheRoot);
+  sdk = findDbgEngSdk(wdkRoot, cacheRoot);
+  if (void 0 === sdk) {
+    info("WDK7 Debuggers SDK was not found after Debugging Tools extraction.");
+  }
+  return {
+    sdk,
+    cacheChanged: changed
+  };
 }
 function hasDbgEngInclude(includeDir) {
-  return existsSync4(path12.join(includeDir, "DbgEng.h"));
+  return existsSync7(path16.join(includeDir, "DbgEng.h"));
 }
 function hasDbgEngLibraries(libraryDir) {
-  return existsSync4(path12.join(libraryDir, "dbgeng.lib")) && existsSync4(path12.join(libraryDir, "dbghelp.lib"));
+  return existsSync7(path16.join(libraryDir, "dbgeng.lib")) && existsSync7(path16.join(libraryDir, "dbghelp.lib"));
 }
 function debuggerBin(root, arch2) {
   const candidates = [
-    path12.join(root, arch2),
-    path12.join(root, "Debuggers", arch2),
-    path12.join(root, "Debugging Tools for Windows", arch2),
-    path12.join(root, `Debugging Tools for Windows (${arch2})`)
+    path16.join(root, arch2),
+    path16.join(root, "Debuggers", arch2),
+    path16.join(root, "Debugging Tools for Windows", arch2),
+    path16.join(root, `Debugging Tools for Windows (${arch2})`)
   ];
-  return candidates.find((candidate) => existsSync4(candidate)) ?? "";
+  for (const candidate of candidates) {
+    if (true === existsSync7(candidate)) {
+      return candidate;
+    }
+  }
+  return "";
 }
 function createDebuggersSdk(root, includeDir, libI386, libAmd64) {
-  if (!hasDbgEngInclude(includeDir) || !hasDbgEngLibraries(libI386) || !hasDbgEngLibraries(libAmd64)) {
+  if (false === hasDbgEngInclude(includeDir)) {
+    return void 0;
+  }
+  if (false === hasDbgEngLibraries(libI386)) {
+    return void 0;
+  }
+  if (false === hasDbgEngLibraries(libAmd64)) {
     return void 0;
   }
   const resolvedRoot = fullPath(root);
@@ -67667,309 +68095,50 @@ function createDebuggersSdk(root, includeDir, libI386, libAmd64) {
 }
 function findDbgEngSdkInKnownLayouts(root) {
   const resolved = fullPath(root);
-  if (!resolved || !existsSync4(resolved)) {
+  if ("" === resolved || false === existsSync7(resolved)) {
     return void 0;
   }
-  const layouts = [
-    {
-      root: path12.join(resolved, "Debuggers"),
-      includeDir: path12.join(resolved, "Debuggers", "sdk", "inc"),
-      libI386: path12.join(resolved, "Debuggers", "sdk", "lib", "i386"),
-      libAmd64: path12.join(resolved, "Debuggers", "sdk", "lib", "amd64")
-    },
-    {
-      root: resolved,
-      includeDir: path12.join(resolved, "sdk", "inc"),
-      libI386: path12.join(resolved, "sdk", "lib", "i386"),
-      libAmd64: path12.join(resolved, "sdk", "lib", "amd64")
-    },
-    {
-      root: path12.join(resolved, "Debuggers"),
-      includeDir: path12.join(resolved, "Debuggers", "inc"),
-      libI386: path12.join(resolved, "Debuggers", "lib", "x86"),
-      libAmd64: path12.join(resolved, "Debuggers", "lib", "x64")
-    },
-    {
-      root: resolved,
-      includeDir: path12.join(resolved, "inc"),
-      libI386: path12.join(resolved, "lib", "x86"),
-      libAmd64: path12.join(resolved, "lib", "x64")
-    },
-    {
-      root: resolved,
-      includeDir: path12.join(resolved, "Include"),
-      libI386: path12.join(resolved, "Lib"),
-      libAmd64: path12.join(resolved, "Lib", "x64")
-    }
-  ];
+  const layouts = knownLayouts(resolved);
   for (const layout of layouts) {
-    const sdk = createDebuggersSdk(layout.root, layout.includeDir, layout.libI386, layout.libAmd64);
-    if (sdk) {
+    const sdk = createDebuggersSdk(
+      layout.root,
+      layout.includeDir,
+      layout.libI386,
+      layout.libAmd64
+    );
+    if (void 0 !== sdk) {
       return sdk;
     }
   }
   return void 0;
-}
-function listFilesUnder(root, predicate, maxDepth = 10) {
-  const resolved = fullPath(root);
-  if (!resolved || !existsSync4(resolved)) {
-    return [];
-  }
-  const result = [];
-  const stack = [{ dir: resolved, depth: 0 }];
-  while (stack.length > 0) {
-    const current = stack.pop();
-    if (!current) {
-      continue;
-    }
-    let entries;
-    try {
-      entries = readdirSync(current.dir);
-    } catch {
-      continue;
-    }
-    for (const entry of entries) {
-      const entryPath = path12.join(current.dir, entry);
-      let stats;
-      try {
-        stats = statSync2(entryPath);
-      } catch {
-        continue;
-      }
-      if (stats.isDirectory()) {
-        if (current.depth < maxDepth) {
-          stack.push({ dir: entryPath, depth: current.depth + 1 });
-        }
-      } else if (predicate(entryPath)) {
-        result.push(entryPath);
-      }
-    }
-  }
-  return result;
 }
 function findDbgEngSdkUnder(root) {
   const known = findDbgEngSdkInKnownLayouts(root);
-  if (known) {
+  if (void 0 !== known) {
     return known;
   }
-  const includeFiles = listFilesUnder(root, (filePath) => path12.basename(filePath).toLowerCase() === "dbgeng.h");
-  if (includeFiles.length === 0) {
+  const includeFiles = findDbgEngHeaders(root);
+  if (0 === includeFiles.length) {
     return void 0;
   }
-  const libDirs = uniqueStrings(
-    listFilesUnder(root, (filePath) => path12.basename(filePath).toLowerCase() === "dbgeng.lib").map((filePath) => path12.dirname(filePath)).filter(hasDbgEngLibraries)
-  );
-  if (libDirs.length === 0) {
+  const libDirs = findDbgEngLibraryDirs(root);
+  if (0 === libDirs.length) {
     return void 0;
   }
-  const amd64Lib = libDirs.find((dir) => /[\\\/](amd64|x64)([\\\/]|$)/i.test(dir));
-  const i386Lib = libDirs.find((dir) => /[\\\/](i386|x86)([\\\/]|$)/i.test(dir) && !/[\\\/](amd64|x64)([\\\/]|$)/i.test(dir)) ?? libDirs.find((dir) => !/[\\\/](amd64|x64)([\\\/]|$)/i.test(dir));
-  if (!i386Lib || !amd64Lib) {
+  const amd64Lib = findAmd64Library(libDirs);
+  const i386Lib = findI386Library(libDirs);
+  if (void 0 === i386Lib || void 0 === amd64Lib) {
     return void 0;
   }
   for (const includeFile of includeFiles) {
-    const includeDir = path12.dirname(includeFile);
-    let debuggerRoot = path12.dirname(includeDir);
-    if (path12.basename(debuggerRoot).toLowerCase() === "sdk") {
-      debuggerRoot = path12.dirname(debuggerRoot);
-    }
+    const includeDir = path16.dirname(includeFile);
+    const debuggerRoot = debuggerRootFromIncludeDir(includeDir);
     const sdk = createDebuggersSdk(debuggerRoot, includeDir, i386Lib, amd64Lib);
-    if (sdk) {
+    if (void 0 !== sdk) {
       return sdk;
     }
   }
   return void 0;
-}
-function findDbgEngSdk(wdkRoot, cacheRoot) {
-  return findDbgEngSdkUnder(wdkRoot) ?? findDbgEngSdkUnder(cacheRoot);
-}
-function runProcess(command, args, options) {
-  return new Promise((resolve3, reject) => {
-    debug(`Running: ${command} ${args.join(" ")}`);
-    const child2 = spawn2(command, args, {
-      cwd: options?.cwd,
-      windowsHide: true
-    });
-    let stdout = "";
-    let stderr = "";
-    child2.stdout.on("data", (chunk) => {
-      const text = chunk.toString();
-      stdout += text;
-      if (!options?.silent) {
-        process.stdout.write(text);
-      }
-    });
-    child2.stderr.on("data", (chunk) => {
-      const text = chunk.toString();
-      stderr += text;
-      if (!options?.silent) {
-        process.stderr.write(text);
-      }
-    });
-    child2.on("error", reject);
-    child2.on("close", (code) => {
-      if (code === 0) {
-        resolve3(stdout.trim());
-      } else {
-        reject(new Error(`${command} failed with exit code ${code}. ${stderr.trim()}`));
-      }
-    });
-  });
-}
-function sleep2(milliseconds) {
-  return new Promise((resolve3) => setTimeout(resolve3, milliseconds));
-}
-async function downloadFile(urlText, outputPath, redirectCount = 0) {
-  if (redirectCount > 8) {
-    throw new Error(`Too many redirects while downloading '${urlText}'.`);
-  }
-  mkdirSync(path12.dirname(outputPath), { recursive: true });
-  const url2 = new URL(urlText);
-  const client = url2.protocol === "https:" ? https3 : http3;
-  const tmpPath = `${outputPath}.tmp`;
-  await new Promise((resolve3, reject) => {
-    const request = client.get(url2, (response) => {
-      const status = response.statusCode ?? 0;
-      const location = response.headers.location;
-      if (status >= 300 && status < 400 && location) {
-        response.resume();
-        const nextUrl = new URL(location, url2).toString();
-        downloadFile(nextUrl, outputPath, redirectCount + 1).then(resolve3, reject);
-        return;
-      }
-      if (status < 200 || status >= 300) {
-        response.resume();
-        reject(new Error(`Download failed with HTTP ${status}: ${urlText}`));
-        return;
-      }
-      const file = createWriteStream2(tmpPath);
-      response.pipe(file);
-      file.on("finish", () => {
-        file.close(() => {
-          renameSync(tmpPath, outputPath);
-          resolve3();
-        });
-      });
-      file.on("error", (error2) => {
-        rmSync(tmpPath, { force: true });
-        reject(error2);
-      });
-    });
-    request.on("error", (error2) => {
-      rmSync(tmpPath, { force: true });
-      reject(error2);
-    });
-    request.setTimeout(3e5, () => {
-      request.destroy(new Error(`Download timed out after 300 seconds: ${urlText}`));
-    });
-  });
-}
-async function downloadFileWithRetries(urlText, outputPath, attempts) {
-  let lastError;
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    try {
-      await downloadFile(urlText, outputPath);
-      return;
-    } catch (error2) {
-      lastError = error2;
-      rmSync(outputPath, { force: true });
-      if (attempt >= attempts) {
-        break;
-      }
-      const delay4 = Math.min(3e4, 2e3 * attempt);
-      warning(
-        `WDK7 ISO download attempt ${attempt}/${attempts} failed: ${error2 instanceof Error ? error2.message : String(error2)}. Retrying in ${delay4 / 1e3}s.`
-      );
-      await sleep2(delay4);
-    }
-  }
-  throw lastError instanceof Error ? lastError : new Error(String(lastError));
-}
-async function downloadFileFromUrlsWithRetries(urls, outputPath, attempts) {
-  let lastError;
-  for (let index = 0; index < urls.length; index += 1) {
-    const url2 = urls[index];
-    try {
-      info(`Downloading WDK7 ISO from source ${index + 1}/${urls.length}: ${url2}`);
-      await downloadFileWithRetries(url2, outputPath, attempts);
-      return url2;
-    } catch (error2) {
-      lastError = error2;
-      rmSync(outputPath, { force: true });
-      if (index + 1 < urls.length) {
-        warning(
-          `WDK7 ISO source ${index + 1}/${urls.length} failed: ${error2 instanceof Error ? error2.message : String(error2)}. Trying next source.`
-        );
-      }
-    }
-  }
-  throw lastError instanceof Error ? lastError : new Error(String(lastError));
-}
-async function ensureWdk7Iso(cacheRoot, urls) {
-  const isoPath = path12.join(cacheRoot, "GRMWDK_EN_7600_1.ISO");
-  if (existsSync4(isoPath)) {
-    info(`Using cached WDK7 ISO: ${isoPath}`);
-    return isoPath;
-  }
-  const downloadedUrl = await downloadFileFromUrlsWithRetries(urls, isoPath, downloadRetries);
-  info(`Downloaded WDK7 ISO from: ${downloadedUrl}`);
-  return isoPath;
-}
-async function mountIso(isoPath) {
-  const script = path12.join(actionRoot(), "scripts", "mount-iso.ps1");
-  const output = await runProcess("powershell.exe", [
-    "-NoProfile",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
-    script,
-    "-ImagePath",
-    isoPath
-  ], { silent: true });
-  const drive = output.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).pop();
-  if (!drive) {
-    throw new Error("Mount-DiskImage did not return a drive letter.");
-  }
-  return drive.replace(":", "");
-}
-async function dismountIso(isoPath) {
-  const script = path12.join(actionRoot(), "scripts", "dismount-iso.ps1");
-  await runProcess("powershell.exe", [
-    "-NoProfile",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
-    script,
-    "-ImagePath",
-    isoPath
-  ], { silent: true });
-}
-function findDebuggersMsiFiles(mediaRoot) {
-  return listFilesUnder(mediaRoot, (filePath) => {
-    const lower = filePath.toLowerCase();
-    const baseName = path12.basename(lower);
-    return baseName.endsWith(".msi") && (baseName.startsWith("dbg") || lower.includes("debuggingtools") || lower.includes("debuggers"));
-  });
-}
-async function extractMsi(msiPath, targetRoot, logRoot) {
-  const baseName = path12.basename(msiPath, path12.extname(msiPath));
-  const logPath = path12.join(logRoot, `${baseName}.log`);
-  try {
-    info(`Extracting ${path12.basename(msiPath)} to ${targetRoot}`);
-    await runProcess("msiexec.exe", [
-      "/a",
-      msiPath,
-      "/qn",
-      "/norestart",
-      `TARGETDIR=${targetRoot}`,
-      "/l*v",
-      logPath
-    ]);
-    return true;
-  } catch (error2) {
-    info(`Skipping ${path12.basename(msiPath)}: ${error2 instanceof Error ? error2.message : String(error2)}`);
-    return false;
-  }
 }
 async function installDebuggersFromIso(isoPath, wdkRoot, cacheRoot) {
   info(`Mounting WDK7 ISO for Debugging Tools: ${isoPath}`);
@@ -67977,23 +68146,26 @@ async function installDebuggersFromIso(isoPath, wdkRoot, cacheRoot) {
   try {
     const mediaRoot = `${drive}:\\`;
     const msiFiles = findDebuggersMsiFiles(mediaRoot);
-    if (msiFiles.length === 0) {
+    if (0 === msiFiles.length) {
       info("No Debugging Tools MSI packages were found in the WDK7 ISO.");
       return false;
     }
     let changed = false;
     const targetRoots = uniqueStrings([
       wdkRoot,
-      path12.join(cacheRoot, "debuggers")
+      path16.join(cacheRoot, "debuggers")
     ]);
     for (const targetRoot of targetRoots) {
-      mkdirSync(targetRoot, { recursive: true });
-      const logRoot = path12.join(targetRoot, "_debuggers_install_logs");
-      mkdirSync(logRoot, { recursive: true });
+      mkdirSync3(targetRoot, { recursive: true });
+      const logRoot = path16.join(targetRoot, "_debuggers_install_logs");
+      mkdirSync3(logRoot, { recursive: true });
       for (const msiPath of msiFiles) {
-        changed = await extractMsi(msiPath, targetRoot, logRoot) || changed;
+        const extracted = await extractMsi(msiPath, targetRoot, logRoot);
+        if (true === extracted) {
+          changed = true;
+        }
       }
-      if (findDbgEngSdk(wdkRoot, cacheRoot)) {
+      if (void 0 !== findDbgEngSdk(wdkRoot, cacheRoot)) {
         return changed;
       }
     }
@@ -68002,89 +68174,148 @@ async function installDebuggersFromIso(isoPath, wdkRoot, cacheRoot) {
     await dismountIso(isoPath);
   }
 }
-async function prepareDebuggersSdk(wdkRoot, cacheRoot, downloadUrls) {
-  let sdk = findDbgEngSdk(wdkRoot, cacheRoot);
-  if (sdk) {
-    return { sdk, cacheChanged: false };
-  }
-  if (downloadUrls.length === 0) {
-    info("WDK7 Debuggers SDK was not found and no download URLs are configured.");
-    return { cacheChanged: false };
-  }
-  const isoPath = await ensureWdk7Iso(cacheRoot, downloadUrls);
-  const changed = await installDebuggersFromIso(isoPath, wdkRoot, cacheRoot);
-  sdk = findDbgEngSdk(wdkRoot, cacheRoot);
-  if (!sdk) {
-    info("WDK7 Debuggers SDK was not found after Debugging Tools extraction.");
-  }
-  return { sdk, cacheChanged: changed };
+function knownLayouts(resolved) {
+  return [
+    {
+      root: path16.join(resolved, "Debuggers"),
+      includeDir: path16.join(resolved, "Debuggers", "sdk", "inc"),
+      libI386: path16.join(resolved, "Debuggers", "sdk", "lib", "i386"),
+      libAmd64: path16.join(resolved, "Debuggers", "sdk", "lib", "amd64")
+    },
+    {
+      root: resolved,
+      includeDir: path16.join(resolved, "sdk", "inc"),
+      libI386: path16.join(resolved, "sdk", "lib", "i386"),
+      libAmd64: path16.join(resolved, "sdk", "lib", "amd64")
+    },
+    {
+      root: path16.join(resolved, "Debuggers"),
+      includeDir: path16.join(resolved, "Debuggers", "inc"),
+      libI386: path16.join(resolved, "Debuggers", "lib", "x86"),
+      libAmd64: path16.join(resolved, "Debuggers", "lib", "x64")
+    },
+    {
+      root: resolved,
+      includeDir: path16.join(resolved, "inc"),
+      libI386: path16.join(resolved, "lib", "x86"),
+      libAmd64: path16.join(resolved, "lib", "x64")
+    },
+    {
+      root: resolved,
+      includeDir: path16.join(resolved, "Include"),
+      libI386: path16.join(resolved, "Lib"),
+      libAmd64: path16.join(resolved, "Lib", "x64")
+    }
+  ];
 }
-async function installWdk7FromIso(isoPath, targetRoot) {
-  info(`Mounting WDK7 ISO: ${isoPath}`);
-  const drive = await mountIso(isoPath);
-  try {
-    const mediaRoot = `${drive}:\\WDK`;
-    if (!existsSync4(mediaRoot)) {
-      throw new Error(`Mounted ISO does not contain a WDK directory: ${mediaRoot}`);
-    }
-    mkdirSync(targetRoot, { recursive: true });
-    const logRoot = path12.join(targetRoot, "_install_logs");
-    mkdirSync(logRoot, { recursive: true });
-    const msiFiles = readdirSync(mediaRoot).filter((entry) => entry.toLowerCase().endsWith(".msi")).map((entry) => path12.join(mediaRoot, entry));
-    if (msiFiles.length === 0) {
-      throw new Error(`No WDK MSI packages found under '${mediaRoot}'.`);
-    }
-    for (const msiPath of msiFiles) {
-      const baseName = path12.basename(msiPath, path12.extname(msiPath));
-      const logPath = path12.join(logRoot, `${baseName}.log`);
-      info(`Extracting ${path12.basename(msiPath)}`);
-      await runProcess("msiexec.exe", [
-        "/a",
-        msiPath,
-        "/qn",
-        "/norestart",
-        `TARGETDIR=${targetRoot}`,
-        "/l*v",
-        logPath
-      ]);
-    }
-  } finally {
-    await dismountIso(isoPath);
-  }
+function findDbgEngHeaders(root) {
+  return listFilesUnder(root, isDbgEngHeader);
 }
-async function restoreActionCache(cacheRoot, cacheKey, restoreKeys) {
-  if (!isFeatureAvailable()) {
-    info("Actions cache service is not available; using local disk cache only.");
-    return void 0;
-  }
-  try {
-    info(`Restoring WDK7 cache with key '${cacheKey}'.`);
-    const hit = await restoreCache([cacheRoot], cacheKey, restoreKeys);
-    if (hit) {
-      info(`Restored WDK7 cache from key '${hit}'.`);
-    } else {
-      info("No WDK7 actions/cache entry was restored.");
+function findDbgEngLibraryDirs(root) {
+  const files = listFilesUnder(root, isDbgEngLibrary);
+  const dirs = [];
+  for (const filePath of files) {
+    const dir = path16.dirname(filePath);
+    if (true === hasDbgEngLibraries(dir)) {
+      dirs.push(dir);
     }
-    return hit;
-  } catch (error2) {
-    warning(`WDK7 cache restore failed: ${error2 instanceof Error ? error2.message : String(error2)}`);
-    return void 0;
   }
+  return uniqueStrings(dirs);
 }
-async function saveActionCache(cacheRoot, cacheKey) {
-  if (!isFeatureAvailable()) {
-    info("Actions cache service is not available; skipping WDK7 cache save.");
-    return;
+function findAmd64Library(libDirs) {
+  for (const dir of libDirs) {
+    if (true === containsArchSegment(dir, ["amd64", "x64"])) {
+      return dir;
+    }
   }
-  try {
-    info(`Saving WDK7 cache with key '${cacheKey}'.`);
-    await saveCache2([cacheRoot], cacheKey);
-  } catch (error2) {
-    warning(`WDK7 cache save skipped: ${error2 instanceof Error ? error2.message : String(error2)}`);
+  return void 0;
+}
+function findI386Library(libDirs) {
+  for (const dir of libDirs) {
+    if (true === containsArchSegment(dir, ["i386", "x86"]) && false === containsArchSegment(dir, ["amd64", "x64"])) {
+      return dir;
+    }
   }
+  for (const dir of libDirs) {
+    if (false === containsArchSegment(dir, ["amd64", "x64"])) {
+      return dir;
+    }
+  }
+  return void 0;
+}
+function debuggerRootFromIncludeDir(includeDir) {
+  let debuggerRoot = path16.dirname(includeDir);
+  if ("sdk" === path16.basename(debuggerRoot).toLowerCase()) {
+    debuggerRoot = path16.dirname(debuggerRoot);
+  }
+  return debuggerRoot;
+}
+function findDebuggersMsiFiles(mediaRoot) {
+  return listFilesUnder(mediaRoot, isDebuggersMsiFile);
+}
+function isDbgEngHeader(filePath) {
+  return "dbgeng.h" === path16.basename(filePath).toLowerCase();
+}
+function isDbgEngLibrary(filePath) {
+  return "dbgeng.lib" === path16.basename(filePath).toLowerCase();
+}
+function isDebuggersMsiFile(filePath) {
+  const lower = filePath.toLowerCase();
+  const baseName = path16.basename(lower);
+  if (false === baseName.endsWith(".msi")) {
+    return false;
+  }
+  return baseName.startsWith("dbg") || lower.includes("debuggingtools") || lower.includes("debuggers");
+}
+function containsArchSegment(value, archNames) {
+  const normalized = value.replace(/\\/g, "/").toLowerCase();
+  const segments = normalized.split("/");
+  for (const segment of segments) {
+    for (const archName of archNames) {
+      if (segment === archName) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// src/outputs.ts
+function publishStaticOutputs() {
+  setOutput("cmake-module-dir", cmakeModuleDir());
+  setOutput("toolchain-file", toolchainFile());
+  setOutput("ddkbuild-cmd", ddkbuildCmd());
+  setOutput("cmake-generator", cmakeGenerator);
+}
+function publishWdk7(root, source, cacheHit, sdk) {
+  const resolvedRoot = fullPath(root);
+  const host = hostBin(resolvedRoot);
+  exportVariable("WDK7_ROOT", resolvedRoot);
+  exportVariable("W7BASE", resolvedRoot);
+  exportVariable("WDK7_HOST_BIN", host);
+  exportVariable("WDK7_CMAKE_MODULE_DIR", cmakeModuleDir());
+  exportVariable("WDK7_CMAKE_TOOLCHAIN_FILE", toolchainFile());
+  exportVariable("WDK7_DDKBUILD_CMD", ddkbuildCmd());
+  exportVariable("WDK7_CMAKE_GENERATOR", cmakeGenerator);
+  addPath(host);
+  setOutput("found", "true");
+  setOutput("root", resolvedRoot);
+  setOutput("source", source);
+  setOutput("cache-hit", true === cacheHit ? "true" : "false");
+  publishDebuggersSdk(sdk);
+  info(`WDK7 ready: root='${resolvedRoot}' source='${source}'`);
+}
+function publishNotFound(reason) {
+  info(reason);
+  publishStaticOutputs();
+  setOutput("found", "false");
+  setOutput("root", "");
+  setOutput("source", "none");
+  setOutput("cache-hit", "false");
+  publishDebuggersSdk(void 0);
 }
 function publishDebuggersSdk(sdk) {
-  if (!sdk) {
+  if (void 0 === sdk) {
     setOutput("dbgeng-found", "false");
     setOutput("debuggers-root", "");
     setOutput("dbgeng-include-dir", "");
@@ -68111,110 +68342,235 @@ function publishDebuggersSdk(sdk) {
     `WDK7 Debuggers SDK ready: root='${sdk.root}' include='${sdk.includeDir}' lib-i386='${sdk.libI386}' lib-amd64='${sdk.libAmd64}'`
   );
 }
-function publishWdk7(root, source, cacheHit, sdk) {
-  const resolvedRoot = fullPath(root);
-  const host = hostBin(resolvedRoot);
-  exportVariable("WDK7_ROOT", resolvedRoot);
-  exportVariable("W7BASE", resolvedRoot);
-  exportVariable("WDK7_HOST_BIN", host);
-  exportVariable("WDK7_CMAKE_MODULE_DIR", cmakeModuleDir());
-  exportVariable("WDK7_CMAKE_TOOLCHAIN_FILE", toolchainFile());
-  exportVariable("WDK7_DDKBUILD_CMD", ddkbuildCmd());
-  exportVariable("WDK7_CMAKE_GENERATOR", cmakeGenerator);
-  addPath(host);
-  setOutput("found", "true");
-  setOutput("root", resolvedRoot);
-  setOutput("source", source);
-  setOutput("cache-hit", cacheHit ? "true" : "false");
-  publishDebuggersSdk(sdk);
-  info(`WDK7 ready: root='${resolvedRoot}' source='${source}'`);
-}
-function publishNotFound(reason) {
-  info(reason);
-  publishStaticOutputs();
-  setOutput("found", "false");
-  setOutput("root", "");
-  setOutput("source", "none");
-  setOutput("cache-hit", "false");
-  publishDebuggersSdk(void 0);
-}
-async function prepareOptionalDebuggersSdk(enabled2, wdkRoot, cacheRoot, downloadUrls) {
-  if (!enabled2) {
-    info("Debugging Tools SDK was not requested. Set debugger: true to prepare DbgEng headers and libraries.");
-    return { cacheChanged: false };
+
+// src/wdk.ts
+import { existsSync as existsSync8, readdirSync as readdirSync3, statSync as statSync3 } from "node:fs";
+import * as path17 from "node:path";
+function isWdk7Root(root) {
+  if ("" === root.trim()) {
+    return false;
   }
-  return prepareDebuggersSdk(wdkRoot, cacheRoot, downloadUrls);
+  const resolved = fullPath(root);
+  const required = requiredWdk7Files(resolved);
+  for (const requiredPath of required) {
+    if (false === existsSync8(requiredPath)) {
+      return false;
+    }
+  }
+  return true;
 }
+function findWdk7Root(requestedRoot, cacheRoot, includeCache) {
+  const candidates = [];
+  addCandidate(candidates, requestedRoot, "input");
+  addCandidate(candidates, process.env.WDK7_ROOT, "environment");
+  addCandidate(candidates, process.env.W7BASE, "environment");
+  if (true === includeCache) {
+    addCacheCandidates(candidates, cacheRoot);
+  }
+  addCandidate(candidates, "C:\\WinDDK\\7600.16385.1", "default");
+  addCandidate(candidates, "C:\\WinDDK\\7600.16385.win7_wdk.100208-1538", "default");
+  for (const candidate of candidates) {
+    if (true === isWdk7Root(candidate.root)) {
+      return candidate;
+    }
+  }
+  return void 0;
+}
+function findWdk7RootUnder(basePath) {
+  const resolvedBase = fullPath(basePath);
+  if ("" === resolvedBase || false === existsSync8(resolvedBase)) {
+    return void 0;
+  }
+  if (true === isWdk7Root(resolvedBase)) {
+    return resolvedBase;
+  }
+  const stack = [resolvedBase];
+  while (0 < stack.length) {
+    const current = stack.pop();
+    if (void 0 === current) {
+      continue;
+    }
+    const entries = readDirectoryEntries2(current);
+    for (const entry of entries) {
+      const entryPath = path17.join(current, entry);
+      const stats = readStats2(entryPath);
+      if (void 0 === stats) {
+        continue;
+      }
+      if (true === stats.isDirectory()) {
+        stack.push(entryPath);
+      } else if ("setenv.bat" === entry.toLowerCase()) {
+        const root = path17.dirname(path17.dirname(entryPath));
+        if (true === isWdk7Root(root)) {
+          return fullPath(root);
+        }
+      }
+    }
+  }
+  return void 0;
+}
+function findCachedWdk7Root(cacheRoot) {
+  const root = findWdk7RootUnder(cacheRoot);
+  if (void 0 === root) {
+    return void 0;
+  }
+  return {
+    root,
+    source: "cache"
+  };
+}
+function requiredWdk7Files(root) {
+  const required = [
+    path17.join(root, "bin", "setenv.bat"),
+    path17.join(root, "inc", "api"),
+    path17.join(root, "inc", "ddk"),
+    path17.join(hostBin(root), "nmake.exe"),
+    path17.join(hostBin(root), "rc.exe")
+  ];
+  for (const bin of targetBins(root)) {
+    required.push(path17.join(bin, "cl.exe"));
+    required.push(path17.join(bin, "link.exe"));
+  }
+  return required;
+}
+function addCacheCandidates(candidates, cacheRoot) {
+  addCandidate(candidates, path17.join(cacheRoot, "7600.16385.1"), "cache");
+  addCandidate(candidates, path17.join(cacheRoot, "7600.16385.win7_wdk.100208-1538"), "cache");
+  addCandidate(candidates, path17.join(cacheRoot, "wdk7", "7600.16385.1"), "cache");
+  addCandidate(candidates, path17.join(cacheRoot, "wdk7", "7600.16385.win7_wdk.100208-1538"), "cache");
+}
+function addCandidate(candidates, root, source) {
+  if (void 0 === root || "" === root.trim()) {
+    return;
+  }
+  const resolved = fullPath(root);
+  const key = resolved.toLowerCase();
+  for (const candidate of candidates) {
+    if (key === candidate.root.toLowerCase()) {
+      return;
+    }
+  }
+  candidates.push({
+    root: resolved,
+    source
+  });
+}
+function readDirectoryEntries2(directory) {
+  try {
+    return readdirSync3(directory);
+  } catch {
+    return [];
+  }
+}
+function readStats2(filePath) {
+  try {
+    return statSync3(filePath);
+  } catch {
+    return void 0;
+  }
+}
+
+// src/main.ts
 async function run() {
-  if (process.platform !== "win32") {
+  if ("win32" !== process.platform) {
     throw new Error("wdk7 only runs on Windows.");
   }
   const inputs = readInputs();
   const cacheRoot = defaultCacheRoot();
-  const cacheKey = inputs.debugger ? debuggerCacheKey : wdkOnlyCacheKey;
-  const restoreKeys = inputs.debugger ? [wdkOnlyCacheKey] : [];
-  mkdirSync(cacheRoot, { recursive: true });
+  const cacheKey = cacheKeyForDebugger(inputs.debugger);
+  const restoreKeys = restoreKeysForDebugger(inputs.debugger);
+  const cache = new CacheSession(cacheRoot, cacheKey, restoreKeys);
+  mkdirSync4(cacheRoot, { recursive: true });
   publishStaticOutputs();
-  let restoredCacheKey;
-  let cacheRestoreAttempted = false;
-  const restoreCacheOnce = async () => {
-    if (!cacheRestoreAttempted) {
-      cacheRestoreAttempted = true;
-      restoredCacheKey = await restoreActionCache(cacheRoot, cacheKey, restoreKeys);
-    }
-  };
   const installed = findWdk7Root(inputs.root, cacheRoot, false);
-  if (installed) {
-    let sdk = inputs.debugger ? findDbgEngSdk(installed.root, cacheRoot) : void 0;
-    let cacheChanged = false;
-    if (inputs.debugger && !sdk) {
-      await restoreCacheOnce();
-      sdk = findDbgEngSdk(installed.root, cacheRoot);
-    }
-    if (inputs.debugger && !sdk) {
-      const prepared2 = await prepareOptionalDebuggersSdk(true, installed.root, cacheRoot, inputs.downloadUrls);
-      sdk = prepared2.sdk;
-      cacheChanged = prepared2.cacheChanged;
-    }
-    publishWdk7(installed.root, installed.source, Boolean(restoredCacheKey), sdk);
+  if (void 0 !== installed) {
+    await useInstalledRoot(inputs, installed, cache, cacheRoot);
     return;
   }
-  await restoreCacheOnce();
-  const found = findWdk7Root(inputs.root, cacheRoot, true) ?? findCachedWdk7Root(cacheRoot);
-  if (found) {
-    const prepared2 = await prepareOptionalDebuggersSdk(inputs.debugger, found.root, cacheRoot, inputs.downloadUrls);
-    if (restoredCacheKey !== cacheKey) {
-      await saveActionCache(cacheRoot, cacheKey);
-    }
-    publishWdk7(
-      found.root,
-      found.source,
-      found.source === "cache" || Boolean(restoredCacheKey),
-      prepared2.sdk
-    );
+  await cache.restoreOnce();
+  let found = findWdk7Root(inputs.root, cacheRoot, true);
+  if (void 0 === found) {
+    found = findCachedWdk7Root(cacheRoot);
+  }
+  if (void 0 !== found) {
+    await useCachedRoot(inputs, found, cache, cacheRoot);
     return;
   }
-  if (inputs.downloadUrls.length === 0) {
+  await downloadAndUseRoot(inputs, cache, cacheRoot);
+}
+async function useInstalledRoot(inputs, installed, cache, cacheRoot) {
+  const prepared = await prepareInstalledDebuggers(inputs, installed.root, cache, cacheRoot);
+  await cache.saveWhenChanged(prepared.cacheChanged);
+  publishWdk7(installed.root, installed.source, cache.hasRestored(), prepared.sdk);
+}
+async function useCachedRoot(inputs, found, cache, cacheRoot) {
+  const prepared = await prepareOptionalDebuggersSdk(
+    inputs.debugger,
+    found.root,
+    cacheRoot,
+    inputs.downloadUrls
+  );
+  await cache.saveIfDifferentKey();
+  publishWdk7(
+    found.root,
+    found.source,
+    "cache" === found.source || true === cache.hasRestored(),
+    prepared.sdk
+  );
+}
+async function downloadAndUseRoot(inputs, cache, cacheRoot) {
+  if (0 === inputs.downloadUrls.length) {
     publishNotFound("WDK7 was not found and no download URLs are configured.");
     return;
   }
   const isoPath = await ensureWdk7Iso(cacheRoot, inputs.downloadUrls);
-  const targetRoot = path12.join(cacheRoot, "7600.16385.1");
-  if (!isWdk7Root(targetRoot)) {
+  const targetRoot = path18.join(cacheRoot, "7600.16385.1");
+  if (false === isWdk7Root(targetRoot)) {
     await installWdk7FromIso(isoPath, targetRoot);
   }
-  const resolvedRoot = findWdk7RootUnder(targetRoot) ?? findWdk7RootUnder("C:\\WinDDK");
-  if (!resolvedRoot) {
+  let resolvedRoot = findWdk7RootUnder(targetRoot);
+  if (void 0 === resolvedRoot) {
+    resolvedRoot = findWdk7RootUnder("C:\\WinDDK");
+  }
+  if (void 0 === resolvedRoot) {
     throw new Error("WDK7 extraction completed, but no valid WDK7 root was found.");
   }
-  const prepared = await prepareOptionalDebuggersSdk(inputs.debugger, resolvedRoot, cacheRoot, inputs.downloadUrls);
-  if (restoredCacheKey !== cacheKey) {
-    await saveActionCache(cacheRoot, cacheKey);
-  }
+  const prepared = await prepareOptionalDebuggersSdk(
+    inputs.debugger,
+    resolvedRoot,
+    cacheRoot,
+    inputs.downloadUrls
+  );
+  await cache.saveIfDifferentKey();
   publishWdk7(resolvedRoot, "download", false, prepared.sdk);
 }
-run().catch((error2) => {
-  publishNotFound(`wdk7 failed: ${error2 instanceof Error ? error2.message : String(error2)}`);
+async function prepareInstalledDebuggers(inputs, wdkRoot, cache, cacheRoot) {
+  if (false === inputs.debugger) {
+    return { cacheChanged: false };
+  }
+  let sdk = findDbgEngSdk(wdkRoot, cacheRoot);
+  if (void 0 !== sdk) {
+    return {
+      sdk,
+      cacheChanged: false
+    };
+  }
+  await cache.restoreOnce();
+  sdk = findDbgEngSdk(wdkRoot, cacheRoot);
+  if (void 0 !== sdk) {
+    return {
+      sdk,
+      cacheChanged: false
+    };
+  }
+  return prepareDebuggersSdk(wdkRoot, cacheRoot, inputs.downloadUrls);
+}
+run().catch(function onRunError(error2) {
+  if (error2 instanceof Error) {
+    publishNotFound(`wdk7 failed: ${error2.message}`);
+    return;
+  }
+  publishNotFound(`wdk7 failed: ${String(error2)}`);
 });
 /*! Bundled license information:
 

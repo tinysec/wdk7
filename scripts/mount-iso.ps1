@@ -6,6 +6,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Mount-DiskImage returns before every runner reliably exposes the volume.
+# The short wait avoids a race where Get-Volume sees the disk object but not the
+# assigned drive letter yet.
 $mount = Mount-DiskImage -ImagePath $ImagePath -PassThru
 Start-Sleep -Seconds 2
 

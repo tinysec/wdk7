@@ -239,16 +239,27 @@ set(_WDK7_KERNEL_LINK_OPTIONS
         /SECTION:INIT,d
         /IGNORE:4198,4010,4037,4039,4065,4070,4078,4087,4089,4221)
 
+# Joins list values into the space-delimited flag strings expected by the WDK7
+# MSVC-compatible command line. CMake lists are easier to maintain above, while
+# the compiler and linker still need plain command-line text.
 function(_wdk7_join out_var)
+    # The result is returned through PARENT_SCOPE so callers can keep all
+    # intermediate flag names local to the toolchain file.
     string(REPLACE ";" " " _joined "${ARGN}")
     set(${out_var} "${_joined}" PARENT_SCOPE)
 endfunction()
 
+# Converts library directories to explicit /LIBPATH flags. WDK7 link behavior is
+# more predictable when the exact library search order is passed to link.exe.
 function(_wdk7_link_directories_flags out_var)
     set(_flags "")
+
+    # The explicit loop keeps each directory visible in generated cache values
+    # and avoids hiding path order in a compact expression.
     foreach (_dir IN LISTS ARGN)
         list(APPEND _flags "/LIBPATH:${_dir}")
     endforeach()
+
     set(${out_var} "${_flags}" PARENT_SCOPE)
 endfunction()
 
@@ -333,14 +344,24 @@ elseif (WDK7_DEFAULT_MODE STREQUAL "KERNEL")
             CACHE STRING "" FORCE)
 endif()
 
+# Adds language-specific compile options to an imported interface target. This
+# lets mixed C/C++ consumers inherit only the options that apply to each source
+# language.
 function(_wdk7_interface_lang_options target lang)
+    # Generator expressions are kept at this boundary so project CMake files can
+    # stay ordinary add_executable/add_library definitions.
     foreach (_opt IN LISTS ARGN)
         set_property(TARGET "${target}" APPEND PROPERTY INTERFACE_COMPILE_OPTIONS
                 "$<$<COMPILE_LANGUAGE:${lang}>:${_opt}>")
     endforeach()
 endfunction()
 
+# Adds configuration-specific options for both C and C++ sources. Debug and
+# release flags differ under WDK7, and consumers should inherit the correct set
+# without repeating toolchain details in project files.
 function(_wdk7_interface_c_cxx_config_options target config)
+    # Both language branches are added together so Debug/Release behavior stays
+    # symmetric for mixed-language targets.
     foreach (_opt IN LISTS ARGN)
         set_property(TARGET "${target}" APPEND PROPERTY INTERFACE_COMPILE_OPTIONS
                 "$<$<AND:$<CONFIG:${config}>,$<COMPILE_LANGUAGE:C>>:${_opt}>"
