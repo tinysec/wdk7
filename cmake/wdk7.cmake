@@ -1,7 +1,10 @@
 # WDK7-only CMake toolchain.
 #
 # WDK7 CMake toolchain version: v1.0.1.
-# Downstream repositories should keep this file in sync with this source copy.
+# Canonical source:
+# https://github.com/tinysec/setup-wdk7/blob/master/cmake/wdk7.cmake
+# Downstream repositories may copy this file, but must not modify their local
+# copies. Update downstream copies only by syncing from the canonical source.
 #
 # Usage:
 #   cmake -S . -B build-wdk7 -G "NMake Makefiles" ^
