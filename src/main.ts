@@ -214,6 +214,11 @@ function findWdk7RootUnder(basePath: string): string | undefined {
   return undefined;
 }
 
+function findCachedWdk7Root(cacheRoot: string): Candidate | undefined {
+  const root = findWdk7RootUnder(cacheRoot);
+  return root ? { root, source: "cache" } : undefined;
+}
+
 function runProcess(command: string, args: string[], options?: { cwd?: string; silent?: boolean }): Promise<string> {
   return new Promise((resolve, reject) => {
     core.debug(`Running: ${command} ${args.join(" ")}`);
@@ -525,7 +530,7 @@ async function run(): Promise<void> {
   let restoredCacheKey: string | undefined;
   restoredCacheKey = await restoreActionCache(cacheRoot, cacheKey, restoreKeys);
 
-  const found = findWdk7Root(inputs.root, cacheRoot, true);
+  const found = findWdk7Root(inputs.root, cacheRoot, true) ?? findCachedWdk7Root(cacheRoot);
   if (found) {
     publishWdk7(
       found.root,

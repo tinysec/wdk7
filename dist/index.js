@@ -67614,6 +67614,10 @@ function findWdk7RootUnder(basePath) {
   }
   return void 0;
 }
+function findCachedWdk7Root(cacheRoot) {
+  const root = findWdk7RootUnder(cacheRoot);
+  return root ? { root, source: "cache" } : void 0;
+}
 function runProcess(command, args, options) {
   return new Promise((resolve3, reject) => {
     debug(`Running: ${command} ${args.join(" ")}`);
@@ -67868,7 +67872,7 @@ async function run() {
   }
   let restoredCacheKey;
   restoredCacheKey = await restoreActionCache(cacheRoot, cacheKey, restoreKeys);
-  const found = findWdk7Root(inputs.root, cacheRoot, true);
+  const found = findWdk7Root(inputs.root, cacheRoot, true) ?? findCachedWdk7Root(cacheRoot);
   if (found) {
     publishWdk7(
       found.root,
