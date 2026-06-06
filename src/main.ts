@@ -6,6 +6,7 @@ import * as https from "node:https";
 import * as os from "node:os";
 import * as path from "node:path";
 import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const defaultDownloadUrl =
   "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO";
@@ -32,7 +33,7 @@ function readInputs(): Inputs {
 }
 
 function actionRoot(): string {
-  return process.env.GITHUB_ACTION_PATH ?? process.cwd();
+  return path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 }
 
 function toolchainFile(): string {

@@ -67458,6 +67458,7 @@ import * as https3 from "node:https";
 import * as os8 from "node:os";
 import * as path12 from "node:path";
 import { spawn as spawn2 } from "node:child_process";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
 var defaultDownloadUrl = "https://download.microsoft.com/download/4/A/2/4A25C7D5-EFBE-4182-B6A9-AE6850409A78/GRMWDK_EN_7600_1.ISO";
 var cmakeGenerator = "NMake Makefiles";
 var cacheKey = "wdk7-7600.16385.1";
@@ -67470,7 +67471,7 @@ function readInputs() {
   };
 }
 function actionRoot() {
-  return process.env.GITHUB_ACTION_PATH ?? process.cwd();
+  return path12.dirname(path12.dirname(fileURLToPath2(import.meta.url)));
 }
 function toolchainFile() {
   return path12.join(actionRoot(), "cmake", "wdk7.cmake");
