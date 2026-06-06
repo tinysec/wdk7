@@ -151,7 +151,7 @@ The action is implemented in TypeScript and published as a bundled JavaScript
 action:
 
 ```powershell
-cd D:\code\wdk7
+cd D:\code\setup-wdk7
 npm.cmd install
 npm.cmd run build
 ```
@@ -168,7 +168,7 @@ are handled by TypeScript.
 You can debug the action without GitHub:
 
 ```powershell
-cd D:\code\wdk7
+cd D:\code\setup-wdk7
 .\scripts\test-local.ps1
 ```
 
@@ -197,7 +197,7 @@ fixtures under `test/e2e`:
 Create the GitHub repository first, then push:
 
 ```powershell
-cd D:\code\wdk7
+cd D:\code\setup-wdk7
 git init
 git add .
 git commit -m "Initial wdk7 action"
