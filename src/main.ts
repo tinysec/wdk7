@@ -532,7 +532,7 @@ function publishWdk7(root: string, arch: WdkArch, source: string, cacheHit: bool
 }
 
 function publishNotFound(arch: WdkArch, reason: string, cacheKey = "wdk7-7600.16385.1"): void {
-  core.warning(reason);
+  core.info(reason);
   publishStaticOutputs(cacheKey);
   core.setOutput("found", "false");
   core.setOutput("root", "");

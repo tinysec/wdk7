@@ -67879,7 +67879,7 @@ function publishWdk7(root, arch2, source, cacheHit, cacheKey) {
   info(`WDK7 ready: root='${resolvedRoot}' arch='${arch2}' source='${source}'`);
 }
 function publishNotFound(arch2, reason, cacheKey = "wdk7-7600.16385.1") {
-  warning(reason);
+  info(reason);
   publishStaticOutputs(cacheKey);
   setOutput("found", "false");
   setOutput("root", "");

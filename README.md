@@ -139,9 +139,9 @@ cd D:\code\wdk7
 git init
 git add .
 git commit -m "Initial wdk7 action"
-git branch -M main
+git branch -M master
 git remote add origin https://github.com/tinysec/wdk7.git
-git push -u origin main
+git push -u origin master
 git tag v1.0.0
 git tag v1
 git push origin v1.0.0 v1
