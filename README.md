@@ -24,7 +24,6 @@ Then use the resolved root in CMake:
   run: |
     cmake -S . -B build -G "${{ steps.wdk7.outputs.cmake-generator }}" ^
       -DCMAKE_TOOLCHAIN_FILE="${{ steps.wdk7.outputs.toolchain-file }}" ^
-      -DCMAKE_MODULE_PATH="${{ steps.wdk7.outputs.cmake-module-dir }}" ^
       -DWDK7_ARCH=${{ matrix.arch }}
 ```
 
@@ -38,7 +37,7 @@ standard CMake commands for exe, dll, and static library targets:
 
 ```cmake
 add_library(plugin SHARED plugin.c)
-target_link_libraries(plugin PRIVATE DbgEng::DbgEng)
+target_link_libraries(plugin PRIVATE kernel32)
 ```
 
 The same model works with `FetchContent` without a WDK-specific wrapper:
@@ -62,13 +61,12 @@ sets kernel compiler defaults; the `.sys` suffix, entry point, and driver linker
 flags are still expressed with ordinary `set_target_properties()` and
 `target_link_options()`.
 
-The action also bundles `cmake/FindDbgEng.cmake`. For WinDbg extensions or
-DbgEng programs, add the module directory to `CMAKE_MODULE_PATH` and use:
-
-```cmake
-find_package(DbgEng REQUIRED)
-target_link_libraries(my_extension PRIVATE DbgEng::DbgEng)
-```
+The action prepares the Debugging Tools SDK because many WDK7-era projects need
+DbgEng headers and libraries, but it does not bundle a `FindDbgEng.cmake`
+module. WinDbg extensions and DbgEng programs should keep their own find module
+or target definition in the project repository. The action exposes the prepared
+SDK through `WDK7_DBGENG_INCLUDE_DIR`, `WDK7_DBGENG_LIB_I386`, and
+`WDK7_DBGENG_LIB_AMD64`.
 
 For legacy WDK build projects, the action also bundles `ddkbuild.cmd` and sets
 `W7BASE` after WDK7 is resolved:
@@ -96,7 +94,6 @@ For legacy WDK build projects, the action also bundles `ddkbuild.cmd` and sets
 - `cache-hit`: `true` when an existing cached tree was reused.
 - `cmake-module-dir`: absolute path to the bundled CMake module directory.
 - `toolchain-file`: absolute path to the bundled CMake WDK7 toolchain file.
-- `finddbgeng-module`: absolute path to the bundled `FindDbgEng.cmake` module.
 - `ddkbuild-cmd`: absolute path to the bundled `ddkbuild.cmd` wrapper.
 - `cmake-generator`: recommended generator, currently `NMake Makefiles`.
 - `dbgeng-found`: `true` when a usable DbgEng SDK was found or prepared.
@@ -187,8 +184,8 @@ the action bundle, prepares WDK7 through this action, then compiles the static
 fixtures under `test/e2e`:
 
 - CMake plus `cmake/wdk7.cmake`: standard `add_executable()`/`add_library()`
-  user-mode exe, dll, static lib, a FetchContent static lib, and a DbgEng-linked
-  exe for i386 and amd64.
+  user-mode exe, dll, static lib, a FetchContent static lib, and a Debugging
+  Tools-linked exe for i386 and amd64.
 - CMake plus `cmake/wdk7.cmake`: standard-command WDM sys for i386 and amd64.
 - `ddkbuild.cmd`: WDM sys for i386 and amd64.
 
@@ -200,7 +197,7 @@ Create the GitHub repository first, then push:
 cd D:\code\setup-wdk7
 git init
 git add .
-git commit -m "Initial wdk7 action"
+git commit -m "Initial setup-wdk7 action"
 git branch -M master
 git remote add origin https://github.com/tinysec/setup-wdk7.git
 git push -u origin master

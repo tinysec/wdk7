@@ -22,8 +22,6 @@ outputs:
     description: Absolute path to the bundled CMake module directory.
   toolchain-file:
     description: Absolute path to the bundled CMake WDK7 toolchain file.
-  finddbgeng-module:
-    description: Absolute path to the bundled FindDbgEng.cmake module.
   ddkbuild-cmd:
     description: Absolute path to the bundled ddkbuild.cmd compatibility wrapper.
   cmake-generator:

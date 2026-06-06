@@ -78,10 +78,6 @@ function toolchainFile(): string {
   return path.join(cmakeModuleDir(), "wdk7.cmake");
 }
 
-function findDbgEngModule(): string {
-  return path.join(cmakeModuleDir(), "FindDbgEng.cmake");
-}
-
 function ddkbuildCmd(): string {
   return path.join(actionRoot(), "ddkbuild.cmd");
 }
@@ -89,7 +85,6 @@ function ddkbuildCmd(): string {
 function publishStaticOutputs(): void {
   core.setOutput("cmake-module-dir", cmakeModuleDir());
   core.setOutput("toolchain-file", toolchainFile());
-  core.setOutput("finddbgeng-module", findDbgEngModule());
   core.setOutput("ddkbuild-cmd", ddkbuildCmd());
   core.setOutput("cmake-generator", cmakeGenerator);
 }
@@ -836,7 +831,6 @@ function publishWdk7(root: string, source: string, cacheHit: boolean, sdk?: Debu
   core.exportVariable("WDK7_HOST_BIN", host);
   core.exportVariable("WDK7_CMAKE_MODULE_DIR", cmakeModuleDir());
   core.exportVariable("WDK7_CMAKE_TOOLCHAIN_FILE", toolchainFile());
-  core.exportVariable("WDK7_FINDDBGENG_CMAKE", findDbgEngModule());
   core.exportVariable("WDK7_DDKBUILD_CMD", ddkbuildCmd());
   core.exportVariable("WDK7_CMAKE_GENERATOR", cmakeGenerator);
 

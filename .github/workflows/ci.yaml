@@ -43,7 +43,6 @@ jobs:
           "cache-hit=${{ steps.wdk7.outputs.cache-hit }}"
           "dbgeng-found=${{ steps.wdk7.outputs.dbgeng-found }}"
           "toolchain-file=${{ steps.wdk7.outputs.toolchain-file }}"
-          "finddbgeng-module=${{ steps.wdk7.outputs.finddbgeng-module }}"
           "ddkbuild-cmd=${{ steps.wdk7.outputs.ddkbuild-cmd }}"
 
           if ("${{ steps.wdk7.outputs.dbgeng-found }}" -ne "true") {
