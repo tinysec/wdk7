@@ -6,8 +6,10 @@ on:
   push:
     branches:
       - master
-    tags:
-      - "v*.*.*"
+
+env:
+  RELEASE_MAJOR: "1"
+  RELEASE_MINOR: "0"
 
 permissions:
   contents: read
@@ -59,8 +61,11 @@ jobs:
   release:
     name: release
     needs: test
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-master
+      cancel-in-progress: false
     permissions:
       contents: write
 
@@ -70,33 +75,85 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: calculate version
+        id: version
+        env:
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          git fetch --force --tags origin
+
+          PREFIX="v${RELEASE_MAJOR}.${RELEASE_MINOR}."
+          EXISTING_TAG="$(git tag --points-at "$HEAD_SHA" --list "${PREFIX}*" --sort=-v:refname | head -n 1 || true)"
+
+          if [[ -n "$EXISTING_TAG" ]]; then
+            TAG_NAME="$EXISTING_TAG"
+          else
+            LATEST_TAG="$(git tag --list "${PREFIX}*" --sort=-v:refname | head -n 1 || true)"
+
+            if [[ -z "$LATEST_TAG" ]]; then
+              NEXT_PATCH="0"
+            else
+              if ! [[ "$LATEST_TAG" =~ ^v${RELEASE_MAJOR}\.${RELEASE_MINOR}\.([0-9]+)$ ]]; then
+                echo "Latest release tag has an unexpected format: $LATEST_TAG"
+                exit 1
+              fi
+
+              NEXT_PATCH="$((BASH_REMATCH[1] + 1))"
+            fi
+
+            TAG_NAME="${PREFIX}${NEXT_PATCH}"
+          fi
+
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "major_tag=v${RELEASE_MAJOR}" >> "$GITHUB_OUTPUT"
+
+      - name: create tag
+        env:
+          TAG_NAME: ${{ steps.version.outputs.tag_name }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+            TAG_SHA="$(git rev-list -n 1 "$TAG_NAME")"
+
+            if [[ "$TAG_SHA" != "$HEAD_SHA" ]]; then
+              echo "Tag $TAG_NAME already points to $TAG_SHA, not $HEAD_SHA."
+              exit 1
+            fi
+
+            echo "Tag $TAG_NAME already exists on this commit."
+          else
+            git tag "$TAG_NAME" "$HEAD_SHA"
+            git push origin "refs/tags/$TAG_NAME"
+          fi
+
       - name: create release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ github.ref_name }}
+          TAG_NAME: ${{ steps.version.outputs.tag_name }}
         run: |
-          if ! [[ "$TAG_NAME" =~ ^v([0-9]+)\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Skipping release for non-semver tag: $TAG_NAME"
-            exit 0
-          fi
+          set -euo pipefail
 
           if gh release view "$TAG_NAME" >/dev/null 2>&1; then
             echo "Release $TAG_NAME already exists."
           else
-            gh release create "$TAG_NAME" --verify-tag --generate-notes --title "$TAG_NAME"
+            gh release create "$TAG_NAME" --verify-tag --generate-notes --latest --title "$TAG_NAME"
           fi
 
       - name: update major tag
         env:
-          TAG_NAME: ${{ github.ref_name }}
+          MAJOR_TAG: ${{ steps.version.outputs.major_tag }}
+          HEAD_SHA: ${{ github.sha }}
         run: |
-          if ! [[ "$TAG_NAME" =~ ^v([0-9]+)\.[0-9]+\.[0-9]+$ ]]; then
-            exit 0
-          fi
+          set -euo pipefail
 
-          MAJOR_TAG="v${BASH_REMATCH[1]}"
-          TARGET_SHA="$(git rev-list -n 1 "$TAG_NAME")"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -f "$MAJOR_TAG" "$TARGET_SHA"
+          git tag -f "$MAJOR_TAG" "$HEAD_SHA"
           git push -f origin "refs/tags/$MAJOR_TAG"
