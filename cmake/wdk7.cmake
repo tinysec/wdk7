@@ -1,5 +1,8 @@
 # WDK7-only CMake toolchain.
 #
+# WDK7 CMake toolchain version: v1.0.1.
+# Downstream repositories should keep this file in sync with this source copy.
+#
 # Usage:
 #   cmake -S . -B build-wdk7 -G "NMake Makefiles" ^
 #     -DCMAKE_TOOLCHAIN_FILE=cmake/wdk7.cmake ^
