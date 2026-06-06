@@ -1,4 +1,4 @@
-name: wdk7
+name: setup-wdk7
 description: Detect, download, cache, and expose Windows Driver Kit 7.1.
 
 inputs:

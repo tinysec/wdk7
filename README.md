@@ -1,7 +1,7 @@
-# wdk7
+# setup-wdk7
 
-`wdk7` is a GitHub/Gitea compatible JavaScript action that prepares Windows
-Driver Kit 7.1 for CI jobs.
+`setup-wdk7` is a GitHub/Gitea compatible JavaScript action that prepares
+Windows Driver Kit 7.1 for CI jobs.
 
 It first detects an existing WDK7 tree, then reuses a local cache, and finally
 downloads and extracts the WDK7 ISO when it cannot find a usable tree. The
@@ -12,7 +12,7 @@ default prepared environment includes the Debugging Tools SDK used by DbgEng.
 ```yaml
 - name: setup wdk7
   id: wdk7
-  uses: tinysec/wdk7@v1
+  uses: tinysec/setup-wdk7@v1
 ```
 
 Then use the resolved root in CMake:
@@ -202,7 +202,7 @@ git init
 git add .
 git commit -m "Initial wdk7 action"
 git branch -M master
-git remote add origin https://github.com/tinysec/wdk7.git
+git remote add origin https://github.com/tinysec/setup-wdk7.git
 git push -u origin master
 git tag v1.0.0
 git tag v1
