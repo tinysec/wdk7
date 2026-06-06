@@ -67475,8 +67475,12 @@ function actionRoot() {
 function toolchainFile() {
   return path12.join(actionRoot(), "cmake", "wdk7.cmake");
 }
+function ddkbuildCmd() {
+  return path12.join(actionRoot(), "ddkbuild.cmd");
+}
 function publishStaticOutputs() {
   setOutput("toolchain-file", toolchainFile());
+  setOutput("ddkbuild-cmd", ddkbuildCmd());
   setOutput("cmake-generator", cmakeGenerator);
 }
 function expandEnvironment(value) {
@@ -67793,6 +67797,7 @@ function publishWdk7(root, source, cacheHit) {
   exportVariable("W7BASE", resolvedRoot);
   exportVariable("WDK7_HOST_BIN", host);
   exportVariable("WDK7_CMAKE_TOOLCHAIN_FILE", toolchainFile());
+  exportVariable("WDK7_DDKBUILD_CMD", ddkbuildCmd());
   exportVariable("WDK7_CMAKE_GENERATOR", cmakeGenerator);
   addPath(host);
   setOutput("found", "true");

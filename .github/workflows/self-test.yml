@@ -53,3 +53,7 @@ jobs:
           "source=${{ steps.wdk7.outputs.source }}"
           "cache-hit=${{ steps.wdk7.outputs.cache-hit }}"
           "toolchain-file=${{ steps.wdk7.outputs.toolchain-file }}"
+          "ddkbuild-cmd=${{ steps.wdk7.outputs.ddkbuild-cmd }}"
+          if (-not (Test-Path -LiteralPath "${{ steps.wdk7.outputs.ddkbuild-cmd }}")) {
+            throw "Bundled ddkbuild.cmd was not found."
+          }

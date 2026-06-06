@@ -30,6 +30,17 @@ The action bundles `cmake/wdk7.cmake`, so projects can use the action's
 toolchain file directly. If a project carries a customized copy, pass that path
 to CMake instead.
 
+For legacy WDK build projects, the action also bundles `ddkbuild.cmd` and sets
+`W7BASE` after WDK7 is resolved:
+
+```yaml
+- name: build with ddkbuild
+  if: steps.wdk7.outputs.found == 'true'
+  shell: cmd
+  run: |
+    call "${{ steps.wdk7.outputs.ddkbuild-cmd }}" -WIN7A64 checked src
+```
+
 ## Inputs
 
 - `root`: explicit WDK7 root.
@@ -42,6 +53,7 @@ to CMake instead.
 - `source`: `input`, `environment`, `cache`, `default`, `download`, or `none`.
 - `cache-hit`: `true` when an existing cached tree was reused.
 - `toolchain-file`: absolute path to the bundled CMake WDK7 toolchain file.
+- `ddkbuild-cmd`: absolute path to the bundled `ddkbuild.cmd` wrapper.
 - `cmake-generator`: recommended generator, currently `NMake Makefiles`.
 
 ## Cache Behavior
