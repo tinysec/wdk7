@@ -1,14 +1,22 @@
 import { mkdirSync } from "node:fs";
 import * as path from "node:path";
 
+import {
+  cacheKeyForDebugger,
+  defaultCacheRoot,
+  publishNotFound,
+  publishStaticOutputs,
+  publishWdk7,
+  readInputs,
+  restoreKeysForDebugger,
+  type ActionInputs,
+  type DebuggersSdk,
+  type PreparedDebuggers,
+  type WdkRoot
+} from "./action.js";
 import { CacheSession } from "./cache.js";
 import { findDbgEngSdk, prepareDebuggersSdk, prepareOptionalDebuggersSdk } from "./debuggers.js";
-import { ensureWdk7Iso } from "./download.js";
-import { installWdk7FromIso } from "./iso.js";
-import { defaultCacheRoot } from "./paths.js";
-import { publishNotFound, publishStaticOutputs, publishWdk7 } from "./outputs.js";
-import { cacheKeyForDebugger, readInputs, restoreKeysForDebugger } from "./settings.js";
-import type { ActionInputs, DebuggersSdk, PreparedDebuggers, WdkRoot } from "./types.js";
+import { ensureWdk7Iso, installWdk7FromIso } from "./install.js";
 import { findCachedWdk7Root, findWdk7Root, findWdk7RootUnder, isWdk7Root } from "./wdk.js";
 
 /**

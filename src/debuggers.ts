@@ -2,12 +2,8 @@ import * as core from "@actions/core";
 import { existsSync, mkdirSync } from "node:fs";
 import * as path from "node:path";
 
-import { ensureWdk7Iso } from "./download.js";
-import { listFilesUnder } from "./files.js";
-import { dismountIso, extractMsi, mountIso } from "./iso.js";
-import { uniqueStrings } from "./lists.js";
-import { fullPath } from "./paths.js";
-import type { DebuggersSdk, PreparedDebuggers } from "./types.js";
+import { fullPath, uniqueStrings, type DebuggersSdk, type PreparedDebuggers } from "./action.js";
+import { dismountIso, ensureWdk7Iso, extractMsi, listFilesUnder, mountIso } from "./install.js";
 
 interface DebuggersLayout {
   root: string;
